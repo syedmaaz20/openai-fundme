@@ -1,9 +1,10 @@
-
 import { useParams, Link } from "react-router-dom";
 import TopNav from "@/components/TopNav";
 import { campaigns } from "@/components/CampaignList";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
+import StudentProfileCard from "@/components/StudentProfileCard";
+import { Share } from "lucide-react";
 
 const CampaignDetail = () => {
   const { id } = useParams();
@@ -41,6 +42,9 @@ const CampaignDetail = () => {
     });
   };
 
+  const handleShare = () =>
+    toast({ title: "Share", description: "Sharing feature coming soon!" });
+
   return (
     <div className="bg-gradient-to-b from-blue-50 via-slate-50 to-white min-h-screen flex flex-col">
       <TopNav />
@@ -48,45 +52,103 @@ const CampaignDetail = () => {
         <div className="w-full max-w-5xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
           {/* Left/Main Content */}
           <div className="lg:col-span-2">
-            <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">
-              {campaign.title}
-            </h1>
-            <div className="flex items-center gap-2 mb-2">
-              <img
-                src={campaign.photo}
-                alt={campaign.studentName}
-                className="w-9 h-9 rounded-full border object-cover"
-              />
-              <span className="font-semibold text-md text-gray-700">
-                {campaign.studentName}
-              </span>
-              <span className="text-xs text-gray-500">Organizer</span>
-            </div>
-            {/* Campaign Images */}
-            <img
-              src={campaign.photo}
-              alt={campaign.title}
-              className="w-full h-64 object-cover rounded-lg shadow mb-5 border"
+            {/* Student Profile Section */}
+            <StudentProfileCard
+              studentName={campaign.studentName}
+              photo={campaign.photo}
+              program="Social Work"
+              institution="University of California, Los Angeles"
+              gradDate="June 2025"
+              isVerified={true}
+              onShare={handleShare}
             />
-            {/* Story */}
-            <h2 className="text-lg font-bold mb-1 text-gray-700">Story</h2>
-            <p className="text-gray-700 mb-4 whitespace-pre-line">{campaign.story}</p>
-
-            <div className="flex flex-col md:flex-row gap-2 mb-6">
-              <Button className="w-full md:w-44 text-base font-semibold bg-gradient-to-r from-green-500 to-blue-500 shadow-md hover:scale-105 transition"
+            {/* Story Section */}
+            <section className="mb-7 bg-white rounded-2xl shadow p-6 border border-gray-100">
+              <h2 className="text-lg font-bold mb-2 text-gray-800">Why I Need Support</h2>
+              <p className="text-gray-700 text-base whitespace-pre-line leading-relaxed">
+                {campaign.story}
+              </p>
+            </section>
+            {/* Education Path */}
+            <section className="mb-7 bg-white rounded-2xl shadow p-6 border border-gray-100">
+              <h3 className="text-lg font-semibold text-gray-800 mb-3">Education Path</h3>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-sm text-gray-700">
+                <div>
+                  <span className="font-medium">Program:</span>
+                  <br />
+                  Social Work
+                </div>
+                <div>
+                  <span className="font-medium">Institution:</span>
+                  <br />
+                  University of California, Los Angeles
+                </div>
+                <div>
+                  <span className="font-medium">Graduation Date:</span>
+                  <br />
+                  June 2025
+                </div>
+              </div>
+            </section>
+            {/* Progress & Fundraising */}
+            <section className="mb-7 bg-white rounded-2xl shadow p-6 border border-gray-100">
+              <h3 className="text-lg font-semibold text-gray-800 mb-2">Funding Progress</h3>
+              <div className="flex justify-between text-sm mb-1">
+                <span>
+                  <span className="font-bold text-blue-700">${campaign.raised.toLocaleString()}</span> raised
+                </span>
+                <span>
+                  <span className="font-medium text-gray-500">Goal: ${campaign.goal.toLocaleString()}</span>
+                </span>
+              </div>
+              <div className="h-3 bg-blue-100 rounded-full mb-2">
+                <div
+                  className="h-full rounded-full bg-gradient-to-r from-blue-500 to-green-400 transition-all"
+                  style={{ width: `${percent}%` }}
+                />
+              </div>
+              <div className="text-right text-xs text-blue-800 font-semibold mb-2">{percent}% funded</div>
+              <Button className="w-full py-2 mt-2 rounded-md bg-gradient-to-r from-green-500 to-blue-500 text-white font-semibold text-base hover:scale-105 transition"
                 onClick={handleDonateClick}
               >
-                Donate now
+                Donate Now
               </Button>
-              <Button
-                variant="outline"
-                className="w-full md:w-32 text-base"
-                onClick={() => toast({ title: "Share", description: "Sharing feature coming soon!" })}
-              >
-                Share
-              </Button>
-            </div>
-
+            </section>
+            {/* (Optional) Impact Tracker - Demo illustration */}
+            <section className="mb-10 bg-gray-50 rounded-2xl shadow p-6 border border-gray-100">
+              <h4 className="text-md font-semibold text-gray-800 mb-3">Impact Tracker</h4>
+              <ul className="space-y-3 text-sm">
+                <li className="flex items-center gap-2">
+                  <span className="inline-flex items-center justify-center w-7 h-7 bg-blue-100 rounded-full text-blue-700">
+                    <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                      <circle cx="12" cy="12" r="10" />
+                      <path d="M9 12l2 2 4-4" />
+                    </svg>
+                  </span>
+                  <span>Milestone achieved: <b>Raised $5,000</b></span>
+                </li>
+                <li className="flex items-center gap-2">
+                  <span className="inline-flex items-center justify-center w-7 h-7 bg-blue-100 rounded-full text-blue-700">
+                    <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                      <path d="M12 4v16M4 12h16" />
+                    </svg>
+                  </span>
+                  <span>Grade improvement: <b>GPA increased to 3.8</b></span>
+                </li>
+                <li className="flex items-center gap-2">
+                  <span className="inline-flex items-center justify-center w-7 h-7 bg-blue-100 rounded-full text-blue-700">
+                    <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                      <rect x="4" y="4" width="16" height="16" rx="2" />
+                      <path d="M8 10h8M8 14h4" />
+                    </svg>
+                  </span>
+                  <span>Message from donor: <span className="italic">
+                    "Keep up the great work. We believe in you!"
+                    </span>
+                  </span>
+                </li>
+              </ul>
+            </section>
             {/* Organizer section */}
             <section className="mb-6">
               <h3 className="font-bold text-gray-900 mb-1">Organizer</h3>
