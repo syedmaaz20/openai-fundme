@@ -8,12 +8,11 @@ export function useCampaigns() {
     queryKey: ["campaigns"],
     queryFn: async (): Promise<Campaign[]> => {
       console.log("Fetching campaigns from Supabase...");
-      
       const { data, error } = await supabase
         .from("campaigns")
         .select(`
           *,
-          profile:profiles(
+          profile:profiles!campaigns_profile_id_fkey(
             full_name,
             aspirational_title,
             university,
@@ -55,12 +54,11 @@ export function useCampaign(id: string) {
     queryKey: ["campaign", id],
     queryFn: async (): Promise<Campaign | null> => {
       console.log(`Fetching campaign ${id} from Supabase...`);
-      
       const { data, error } = await supabase
         .from("campaigns")
         .select(`
           *,
-          profile:profiles(
+          profile:profiles!campaigns_profile_id_fkey(
             full_name,
             aspirational_title,
             university,
@@ -107,12 +105,11 @@ export function useCampaignByShareCode(shareCode: string) {
     queryKey: ["campaign-by-share-code", shareCode],
     queryFn: async (): Promise<Campaign | null> => {
       console.log(`Fetching campaign by share code ${shareCode} from Supabase...`);
-      
       const { data, error } = await supabase
         .from("campaigns")
         .select(`
           *,
-          profile:profiles(
+          profile:profiles!campaigns_profile_id_fkey(
             full_name,
             aspirational_title,
             university,
