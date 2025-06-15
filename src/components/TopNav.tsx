@@ -1,22 +1,25 @@
+
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import React from "react";
 
 const navLinks = [
   { label: "Home", href: "/" },
-  { label: "Campaigns", href: "/campaigns" },
+  { label: "Campaigns", href: "/campaigns" }, // update to new page
   { label: "About", href: "/about" },
-  { label: "How It Works", href: "/how-it-works" },
+  { label: "How It Works", href: "#how" },
 ];
 
 const TopNav = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
+  // Helper to handle scrolling to top on navigation
   const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
     e.preventDefault();
     if (location.pathname !== href) {
       navigate(href);
     }
+    // Use a small timeout to ensure page transition then scroll to top
     setTimeout(() => window.scrollTo({ top: 0, behavior: "smooth" }), 0);
   };
 
@@ -29,7 +32,7 @@ const TopNav = () => {
         <ul className="hidden md:flex gap-7 text-base font-medium text-gray-700">
           {navLinks.map(link => (
             <li key={link.label}>
-              {["/", "/about", "/how-it-works"].includes(link.href) ? (
+              {["/", "/about"].includes(link.href) ? (
                 <a
                   href={link.href}
                   onClick={e => handleNavClick(e, link.href)}
