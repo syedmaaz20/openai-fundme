@@ -1,10 +1,13 @@
 
 import { CampaignCard, Campaign } from "./CampaignCard";
 
+// Updated campaign data structure to include aspirationalTitle and shortDescription
 const campaigns: Campaign[] = [
   {
     id: "1",
     studentName: "Amina Yusuf",
+    aspirationalTitle: "Aspiring Doctor",
+    shortDescription: "A top student from rural Kenya, passionate about serving her community through medicine.",
     title: "Scholarship for Medical School",
     story: "Amina is a top student from a rural community in Kenya. Help her continue her medical studies and serve her village.",
     photo: "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?auto=format&fit=crop&w=400&q=80",
@@ -14,6 +17,8 @@ const campaigns: Campaign[] = [
   {
     id: "2",
     studentName: "Pedro González",
+    aspirationalTitle: "Future Engineer",
+    shortDescription: "Pedro dreams of building sustainable solutions for his hometown while pursuing engineering.",
     title: "Engineering Dreams",
     story: "Pedro's family cannot afford university fees. Your donation fuels his dream to become an engineer and build solutions for his town.",
     photo: "https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=400&q=80",
@@ -23,6 +28,8 @@ const campaigns: Campaign[] = [
   {
     id: "3",
     studentName: "Chloe Zhao",
+    aspirationalTitle: "Young Scientist",
+    shortDescription: "Chloe’s love for science drives her to innovate despite limited access to lab resources.",
     title: "STEM Supplies for Chloe",
     story: "Chloe is passionate about science but lacks resources for basic lab equipment. Your support ignites a young scientist's career.",
     photo: "https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?auto=format&fit=crop&w=400&q=80",
@@ -32,6 +39,8 @@ const campaigns: Campaign[] = [
   {
     id: "4",
     studentName: "Samson Eke",
+    aspirationalTitle: "College Hopeful",
+    shortDescription: "Samson aims to lift his family from poverty by becoming the first to attend college.",
     title: "From the Village to College",
     story: "Samson dreams of attending college to lift his family out of poverty. Each donation takes him a step closer to that dream.",
     photo: "https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&w=400&q=80",
@@ -50,3 +59,4 @@ const CampaignList = () => (
 
 export default CampaignList;
 export { campaigns }; // export campaigns for use in detail page
+

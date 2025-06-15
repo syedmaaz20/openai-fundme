@@ -2,9 +2,12 @@
 import { ArrowUp, DollarSign } from "lucide-react";
 import { Link } from "react-router-dom";
 
-interface Campaign {
+export interface Campaign {
   id: string;
   studentName: string;
+  // New fields for student focus
+  aspirationalTitle: string;
+  shortDescription: string;
   title: string;
   story: string;
   photo: string;
@@ -19,13 +22,15 @@ export const CampaignCard = ({ campaign }: { campaign: Campaign }) => {
     <Link
       to={`/campaigns/${campaign.id}`}
       className="bg-white rounded-2xl shadow group transition-transform duration-150 hover:scale-105 hover:shadow-lg border border-gray-100 flex flex-col animate-fade-in overflow-hidden cursor-pointer focus:ring-2 focus:ring-blue-400"
-      aria-label={`Donate to ${campaign.title}`}
+      aria-label={`Support ${campaign.studentName}'s education campaign`}
     >
       <img src={campaign.photo} alt={campaign.studentName} className="h-40 w-full object-cover" />
       <div className="flex-1 flex flex-col p-5">
-        <h4 className="font-bold text-xl text-gray-800 mb-1">{campaign.title}</h4>
-        <p className="text-xs font-semibold text-blue-500 mb-1">By {campaign.studentName}</p>
-        <p className="text-gray-600 text-sm mb-3 line-clamp-3">{campaign.story}</p>
+        <h4 className="font-extrabold text-2xl text-gray-800 mb-0.5 leading-tight">{campaign.studentName}</h4>
+        <div className="text-blue-600 text-sm font-semibold mb-1">
+          {campaign.aspirationalTitle}
+        </div>
+        <p className="text-gray-600 text-sm mb-3 line-clamp-2">{campaign.shortDescription}</p>
         <div className="mt-auto">
           <div className="flex gap-2 items-center text-xs mb-1">
             <DollarSign className="text-green-500 mr-1" size={18} />
@@ -64,3 +69,4 @@ export const CampaignCard = ({ campaign }: { campaign: Campaign }) => {
 };
 
 export type { Campaign };
+
