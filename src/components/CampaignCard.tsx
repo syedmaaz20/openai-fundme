@@ -1,4 +1,3 @@
-
 import { ArrowUp, DollarSign } from "lucide-react";
 import { Link } from "react-router-dom";
 
@@ -67,6 +66,3 @@ export const CampaignCard = ({ campaign }: { campaign: Campaign }) => {
     </Link>
   );
 };
-
-export type { Campaign };
-
