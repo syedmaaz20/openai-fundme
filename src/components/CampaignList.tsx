@@ -1,5 +1,6 @@
 
 import { CampaignCard } from "./CampaignCard";
+
 // dummy campaign data with short shareCode
 export const campaigns = [
   {
@@ -28,4 +29,15 @@ export const campaigns = [
     shareCode: "juan2"
   }
 ];
+
+// CampaignList component renders all campaigns using CampaignCard
+const CampaignList = () => (
+  <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
+    {campaigns.map(campaign => (
+      <CampaignCard key={campaign.id} campaign={campaign} />
+    ))}
+  </div>
+);
+
+export default CampaignList;
 export { CampaignCard };
