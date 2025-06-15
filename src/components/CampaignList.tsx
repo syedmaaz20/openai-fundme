@@ -41,7 +41,7 @@ const campaigns: Campaign[] = [
 ];
 
 const CampaignList = () => (
-  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-7 w-full">
+  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 w-full">
     {campaigns.map((campaign) => (
       <CampaignCard key={campaign.id} campaign={campaign} />
     ))}
@@ -49,4 +49,4 @@ const CampaignList = () => (
 );
 
 export default CampaignList;
-export { campaigns };
+export { campaigns }; // export campaigns for use in detail page
