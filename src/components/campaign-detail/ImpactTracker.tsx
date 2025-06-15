@@ -1,6 +1,6 @@
 
 import React from "react";
-import { Trophy, TrendingUp, MessageSquare } from "lucide-react";
+import { Trophy, TrendingUp } from "lucide-react";
 
 const impactData = [
   {
@@ -12,11 +12,6 @@ const impactData = [
     icon: <TrendingUp className="text-sky-500 mr-2" size={20} />,
     title: "Grade Improvement",
     description: "GPA increased to 3.8"
-  },
-  {
-    icon: <MessageSquare className="text-gray-500 mr-2" size={20} />,
-    title: "Message from Donor",
-    description: <>“<span className="italic">Keep up the great work, Sophia! We believe in you.</span>”</>
   }
 ];
 
@@ -36,3 +31,4 @@ export default function ImpactTracker() {
     </section>
   );
 }
+
