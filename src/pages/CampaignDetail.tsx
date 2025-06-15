@@ -7,12 +7,38 @@ import { ArrowUp, Trophy, MessageSquare, TrendingUp } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import {
+  PieChart,
+  Pie,
+  Cell,
+  Tooltip,
+  ResponsiveContainer,
+  Label,
+} from "recharts";
 
 // Fake breakdown + impact data for demo
 const fundingBreakdown = [
-  { label: "Tuition", amount: 10000, percent: 66.7, color: "bg-blue-400" },
-  { label: "Books & Supplies", amount: 2000, percent: 13.3, color: "bg-sky-300" },
-  { label: "Living Expenses", amount: 3000, percent: 20.0, color: "bg-green-300" },
+  {
+    label: "Tuition",
+    amount: 10000,
+    percent: 66.7,
+    color: "#60a5fa", // blue-400
+    legend: "bg-blue-400",
+  },
+  {
+    label: "Books & Supplies",
+    amount: 2000,
+    percent: 13.3,
+    color: "#7dd3fc", // sky-300
+    legend: "bg-sky-300",
+  },
+  {
+    label: "Living Expenses",
+    amount: 3000,
+    percent: 20.0,
+    color: "#6ee7b7", // green-300
+    legend: "bg-green-300",
+  },
 ];
 
 const impactData = [
@@ -40,6 +66,31 @@ const educationPath = [
 ];
 
 const donationChoices = [35, 50, 100];
+
+const CustomPieLabel = ({ cx, cy, width, height, campaignGoal }: any) => (
+  <text
+    x={cx}
+    y={cy}
+    textAnchor="middle"
+    dominantBaseline="middle"
+    className="font-bold text-gray-700"
+    fontSize={20}
+  >
+    {`Total: $${campaignGoal.toLocaleString()}`}
+  </text>
+);
+
+const FundingPieTooltip = ({ active, payload }: any) => {
+  if (active && payload && payload.length) {
+    const item = payload[0]?.payload;
+    return (
+      <div className="rounded-lg border bg-white px-3 py-2 shadow text-xs font-semibold text-blue-700">
+        {item.label}: ${item.amount.toLocaleString()} ({item.percent}%)
+      </div>
+    );
+  }
+  return null;
+};
 
 const CampaignDetail = () => {
   const { id } = useParams();
@@ -77,7 +128,10 @@ const CampaignDetail = () => {
     );
   }
 
-  const percent = Math.min(Math.round((campaign.raised / campaign.goal) * 100), 100);
+  const percent = Math.min(
+    Math.round((campaign.raised / campaign.goal) * 100),
+    100
+  );
 
   const handleDonateClick = () => {
     toast({
@@ -92,7 +146,6 @@ const CampaignDetail = () => {
       <TopNav />
       <main className="flex-1 w-full flex flex-col items-center pt-6 px-2 sm:px-4 lg:px-0">
         <div className="w-full max-w-5xl mx-auto grid grid-cols-1 lg:grid-cols-6 gap-8 lg:gap-10 mb-12">
-          {/* Main content */}
           <div className="col-span-1 lg:col-span-4 flex flex-col gap-6">
             {/* Profile Card, story, education, funding, progress, etc */}
             {/* Profile Card */}
@@ -170,45 +223,55 @@ const CampaignDetail = () => {
             {/* Funding Needs */}
             <section className="bg-white rounded-xl shadow border border-slate-100 p-6">
               <h2 className="text-lg font-semibold mb-2 text-gray-900">Funding Needs</h2>
-              <div>
-                <div className="flex flex-col items-center mb-3">
-                  {/* Simulated Pie Chart visual */}
-                  <div className="relative w-36 h-36 flex items-center justify-center mb-2">
-                    {/* Pie chart segments - just color blocks for now */}
-                    <svg width={140} height={140} viewBox="0 0 40 40">
-                      <circle r="16" cx="20" cy="20" fill="#cee3fc" />
-                      <path d="M20 4
-                      A 16 16 0 0 1 38.286 23.196
-                      L 20 20 Z"
-                        fill="#60a5fa"/>
-                      <path d="M20 4
-                      A 16 16 0 1 1 9.6 35.221
-                      L 20 20 Z"
-                        fill="#7dd3fc"/>
-                      <path d="M20 20
-                      L 38.286 23.196
-                      A 16 16 0 0 1 9.6 35.221
-                      Z"
-                        fill="#6ee7b7"/>
-                    </svg>
-                    <span className="absolute inset-0 flex items-center justify-center font-bold text-gray-700 text-md">
-                      Total: ${campaign.goal.toLocaleString()}
-                    </span>
+              <div className="flex flex-col md:flex-row md:items-center md:gap-6 items-center">
+                <div className="relative flex items-center justify-center mb-2 md:mb-0 md:w-1/2" style={{ minHeight: 180 }}>
+                  <div className="w-44 h-44">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <PieChart>
+                        <Pie
+                          data={fundingBreakdown}
+                          cx="50%"
+                          cy="50%"
+                          innerRadius={50}
+                          outerRadius={70}
+                          paddingAngle={1.5}
+                          dataKey="amount"
+                          isAnimationActive={true}
+                        >
+                          {fundingBreakdown.map((entry, idx) => (
+                            <Cell key={entry.label} fill={entry.color} />
+                          ))}
+                          {/* Center label */}
+                          <Label
+                            width={180}
+                            position="center"
+                            content={
+                              <CustomPieLabel campaignGoal={campaign.goal} />
+                            }
+                          />
+                        </Pie>
+                        <Tooltip
+                          content={<FundingPieTooltip />}
+                          cursor={{ fill: "#c7e2fa21" }}
+                        />
+                      </PieChart>
+                    </ResponsiveContainer>
                   </div>
-                  <ul className="w-full max-w-xs text-sm mt-2">
-                    {fundingBreakdown.map((b, idx) => (
-                      <li className="flex justify-between py-1 items-center" key={b.label}>
-                        <div className="flex items-center gap-2">
-                          <span className={`inline-block w-3 h-3 rounded-full ${b.color}`} />
-                          <span>{b.label}</span>
-                        </div>
-                        <div>
-                          ${b.amount.toLocaleString()} <span className="text-gray-400">({b.percent}%)</span>
-                        </div>
-                      </li>
-                    ))}
-                  </ul>
                 </div>
+                <ul className="w-full max-w-xs text-sm md:ml-6">
+                  {fundingBreakdown.map((b, idx) => (
+                    <li className="flex justify-between py-1 items-center" key={b.label}>
+                      <div className="flex items-center gap-2">
+                        <span className={`inline-block w-3 h-3 rounded-full ${b.legend}`} />
+                        <span>{b.label}</span>
+                      </div>
+                      <div>
+                        ${b.amount.toLocaleString()}{" "}
+                        <span className="text-gray-400">({b.percent}%)</span>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
               </div>
             </section>
 
@@ -305,6 +368,7 @@ const CampaignDetail = () => {
             {/* Example, you'd expand here with ... */}
             {/* ... */}
           </div>
+
           {/* Sticky Donation Card */}
           <div className="col-span-1 lg:col-span-2 hidden lg:block">
             <StickyDonationCard
