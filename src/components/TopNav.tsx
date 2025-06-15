@@ -55,12 +55,12 @@ const TopNav = () => {
             </li>
           ))}
           <li>
-            <Link
-              to="/start-campaign"
+            <a
+              href="#"
               className="ml-3 py-2 px-4 rounded-lg bg-gradient-to-r from-blue-600 to-green-400 text-white font-semibold shadow hover:scale-105 transition"
             >
               Start a Campaign
-            </Link>
+            </a>
           </li>
         </ul>
         {/* Mobile: Hamburger button */}
