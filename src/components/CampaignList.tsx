@@ -49,3 +49,4 @@ const CampaignList = () => (
 );
 
 export default CampaignList;
+export { campaigns }; // export campaigns for use in detail page

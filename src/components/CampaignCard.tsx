@@ -1,5 +1,6 @@
 
-import { ArrowUp, ArrowDown, DollarSign } from "lucide-react";
+import { ArrowUp, DollarSign } from "lucide-react";
+import { Link } from "react-router-dom";
 
 interface Campaign {
   id: string;
@@ -15,7 +16,11 @@ export const CampaignCard = ({ campaign }: { campaign: Campaign }) => {
   const percent = Math.min(Math.round((campaign.raised / campaign.goal) * 100), 100);
 
   return (
-    <div className="bg-white rounded-2xl shadow group transition-transform duration-150 hover:scale-105 hover:shadow-lg border border-gray-100 flex flex-col animate-fade-in overflow-hidden">
+    <Link
+      to={`/campaigns/${campaign.id}`}
+      className="bg-white rounded-2xl shadow group transition-transform duration-150 hover:scale-105 hover:shadow-lg border border-gray-100 flex flex-col animate-fade-in overflow-hidden cursor-pointer focus:ring-2 focus:ring-blue-400"
+      aria-label={`Donate to ${campaign.title}`}
+    >
       <img src={campaign.photo} alt={campaign.studentName} className="h-40 w-full object-cover" />
       <div className="flex-1 flex flex-col p-5">
         <h4 className="font-bold text-xl text-gray-800 mb-1">{campaign.title}</h4>
@@ -45,17 +50,16 @@ export const CampaignCard = ({ campaign }: { campaign: Campaign }) => {
                 </>
               )}
             </span>
-            <a
-              href="#"
-              className="text-blue-600 font-medium hover:underline hover:text-blue-800"
-              tabIndex={0}
+            <span
+              className="text-blue-600 font-medium hover:underline hover:text-blue-800 select-none cursor-pointer"
+              tabIndex={-1}
             >
               Support
-            </a>
+            </span>
           </div>
         </div>
       </div>
-    </div>
+    </Link>
   );
 };
 
