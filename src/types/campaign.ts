@@ -1,6 +1,12 @@
 
-// Types for campaign detail components and data
-
+export interface Campaign {
+  id: string;
+  studentName: string;
+  goal: number;
+  raised: number;
+  photo: string;
+  shareCode: string; // add this for short url
+}
 export interface FundingBreakdown {
   label: string;
   amount: number;
@@ -8,13 +14,11 @@ export interface FundingBreakdown {
   color: string;
   legend?: string;
 }
-
 export interface ImpactItem {
   icon: React.ReactNode;
   title: string;
   description: React.ReactNode;
 }
-
 export interface Supporter {
   name: string;
   amount: number;
@@ -23,12 +27,3 @@ export interface Supporter {
   time?: string;
   message?: string;
 }
-
-export interface Campaign {
-  id: string;
-  studentName: string;
-  goal: number;
-  raised: number;
-  photo: string;
-}
-

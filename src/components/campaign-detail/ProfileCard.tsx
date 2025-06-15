@@ -1,8 +1,11 @@
-import React from "react";
-import { toast } from "@/hooks/use-toast";
-import { ArrowUp } from "lucide-react";
 
-export default function ProfileCard({ campaign }: { campaign: { photo: string, studentName: string } }) {
+import React from "react";
+import { Share2 } from "lucide-react";
+import { useShareCampaign } from "@/hooks/useShareCampaign";
+
+export default function ProfileCard({ campaign }: { campaign: { photo: string, studentName: string, shareCode: string } }) {
+  const share = useShareCampaign();
+
   return (
     <div className="bg-white p-0 pb-4 rounded-2xl shadow border border-slate-100 overflow-hidden">
       {/* Banner */}
@@ -28,9 +31,9 @@ export default function ProfileCard({ campaign }: { campaign: { photo: string, s
           <div>
             <button
               className="text-blue-600 hover:underline text-sm mt-1 flex items-center gap-1"
-              onClick={() => toast({ title: "Share", description: "Sharing feature coming soon!" })}
+              onClick={() => share({ studentName: campaign.studentName, shareCode: campaign.shareCode })}
             >
-              <ArrowUp className="rotate-45" size={15} /> Share
+              <Share2 size={15} /> Share
             </button>
           </div>
         </div>
@@ -44,8 +47,12 @@ export default function ProfileCard({ campaign }: { campaign: { photo: string, s
             className="object-cover h-full w-full"
           />
           <div className="absolute inset-0 flex items-center justify-center">
-            <button className="bg-white bg-opacity-60 rounded-full p-4 shadow-md">
-              <svg width="36" height="36" viewBox="0 0 24 24" fill="#697386"><path d="M8 5v14l11-7z" /></svg>
+            <button
+              className="bg-white bg-opacity-60 rounded-full p-4 shadow-md"
+              title="Share campaign"
+              onClick={() => share({ studentName: campaign.studentName, shareCode: campaign.shareCode })}
+            >
+              <Share2 size={36} />
             </button>
           </div>
         </div>

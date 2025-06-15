@@ -5,8 +5,6 @@ import TopNav from "@/components/TopNav";
 import { campaigns } from "@/components/CampaignList";
 import StickyDonationCard from "@/components/StickyDonationCard";
 import { toast } from "@/hooks/use-toast";
-
-// Refactored components
 import ProfileCard from "@/components/campaign-detail/ProfileCard";
 import WhyINeedSupport from "@/components/campaign-detail/WhyINeedSupport";
 import EducationPath from "@/components/campaign-detail/EducationPath";
@@ -17,9 +15,10 @@ import WordsOfSupport from "@/components/campaign-detail/WordsOfSupport";
 import DonationOptions from "@/components/campaign-detail/DonationOptions";
 import CampaignFooter from "@/components/campaign-detail/CampaignFooter";
 
-const CampaignDetail = () => {
-  const { id } = useParams();
-  const campaign = campaigns.find((c) => c.id === id);
+const CampaignDetail = ({ campaign: campaignOverride }: { campaign?: any } = {}) => {
+  // If campaign is passed in as a prop (resolved by shortCode), use it, else fall back to normal param-based lookup.
+  const params = useParams();
+  const campaign = campaignOverride || campaigns.find(c => c.id === (params.id || params.campaignId));
 
   // Simulate support list (hardcoded for now)
   const supporters = [
@@ -56,7 +55,6 @@ const CampaignDetail = () => {
       <main className="flex-1 w-full flex flex-col items-center pt-6 px-2 sm:px-4 lg:px-0">
         <div className="w-full max-w-5xl mx-auto grid grid-cols-1 lg:grid-cols-6 gap-8 lg:gap-10 mb-12">
           <div className="col-span-1 lg:col-span-4 flex flex-col gap-6">
-            {/* Profile Card, story, education, funding, progress, etc */}
             <ProfileCard campaign={campaign} />
             <WhyINeedSupport />
             <EducationPath />
@@ -72,6 +70,7 @@ const CampaignDetail = () => {
               raised={campaign.raised}
               supporters={supporters}
               studentName={campaign.studentName}
+              shareCode={campaign.shareCode}
             />
           </div>
         </div>
@@ -81,6 +80,7 @@ const CampaignDetail = () => {
             raised={campaign.raised}
             supporters={supporters}
             studentName={campaign.studentName}
+            shareCode={campaign.shareCode}
           />
         </div>
         <CampaignFooter />

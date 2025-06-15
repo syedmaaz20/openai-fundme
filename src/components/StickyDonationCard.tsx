@@ -2,6 +2,7 @@
 import { Button } from "@/components/ui/button";
 import { TrendingUp, Share2, Users } from "lucide-react";
 import React from "react";
+import { useShareCampaign } from "@/hooks/useShareCampaign";
 
 type Donor = {
   name: string;
@@ -15,6 +16,7 @@ type Props = {
   raised: number;
   supporters: Donor[];
   studentName: string;
+  shareCode: string;
 };
 
 export default function StickyDonationCard({
@@ -22,8 +24,10 @@ export default function StickyDonationCard({
   raised,
   supporters,
   studentName,
+  shareCode,
 }: Props) {
   const percent = Math.min(Math.round((raised / goal) * 100), 100);
+  const share = useShareCampaign();
 
   return (
     <aside className="w-full sm:max-w-sm bg-white rounded-2xl shadow-lg border border-blue-100 p-5 relative
@@ -36,7 +40,7 @@ export default function StickyDonationCard({
               cx="32"
               cy="32"
               r="29"
-              stroke="#e0e7ef" // blue-100
+              stroke="#e0e7ef"
               strokeWidth="6"
               fill="none"
             />
@@ -44,7 +48,7 @@ export default function StickyDonationCard({
               cx="32"
               cy="32"
               r="29"
-              stroke="#3b82f6" // blue-500
+              stroke="#3b82f6"
               strokeWidth="6"
               fill="none"
               strokeDasharray={2 * Math.PI * 29}
@@ -64,7 +68,12 @@ export default function StickyDonationCard({
           <span className="text-gray-500"> raised of ${goal.toLocaleString()}</span>
         </div>
         <div className="flex gap-2 justify-center mb-4">
-          <Button variant="outline" className="border-blue-400 text-blue-600 px-3 flex gap-1 items-center">
+          <Button
+            variant="outline"
+            className="border-blue-400 text-blue-600 px-3 flex gap-1 items-center"
+            onClick={() => share({ studentName, shareCode })}
+            title="Share this campaign"
+          >
             <Share2 className="w-4 h-4" /> Share
           </Button>
           <Button
@@ -120,4 +129,3 @@ export default function StickyDonationCard({
     </aside>
   );
 }
-
