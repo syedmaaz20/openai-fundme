@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -10,16 +9,33 @@ import About from "./pages/About";
 import Campaigns from "./pages/Campaigns";
 import CampaignDetail from "./pages/CampaignDetail";
 import HowItWorks from "./pages/HowItWorks";
-import { findCampaignByShareCode } from "@/utils/campaignShortUrl";
 import React from "react";
 const queryClient = new QueryClient();
 
+import { useFindCampaignByShareCode } from "@/utils/campaignShortUrl";
+import { useParams } from "react-router-dom";
+import TopNav from "@/components/TopNav";
+
 const ShortCampaignDetail = () => {
-  // Special page for /c/:shareCode
-  // Needs to match the campaign by shareCode. If not found, render NotFound
-  const { shareCode } = window.location.pathname.match(/^\/c\/(?<shareCode>[^/]+)/)?.groups || {};
-  const campaign = shareCode ? findCampaignByShareCode(shareCode) : undefined;
-  if (!campaign) return <NotFound />;
+  const { shareCode } = useParams();
+  const { data: campaign, isLoading, error } = useFindCampaignByShareCode(shareCode || "");
+
+  if (isLoading) {
+    return (
+      <div>
+        <TopNav />
+        <div className="h-screen flex flex-col items-center justify-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+          <p className="mt-4 text-gray-600">Loading campaign...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !campaign) {
+    return <NotFound />;
+  }
+
   return <CampaignDetail campaign={campaign} />;
 };
 

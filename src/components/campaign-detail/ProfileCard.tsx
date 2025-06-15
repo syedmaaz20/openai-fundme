@@ -16,13 +16,12 @@ const getYoutubeId = (url?: string) => {
   return match ? match[1] : "";
 };
 
-export default function ProfileCard({
-  campaign,
-}: {
-  campaign: Partial<Campaign> & { photo: string; studentName: string; shareCode: string; videoUrl?: string };
-}) {
+export default function ProfileCard({ campaign }: { campaign: Campaign }) {
   const share = useShareCampaign();
-  const youtubeId = getYoutubeId(campaign.videoUrl);
+  const youtubeId = getYoutubeId(campaign.video_url);
+  
+  const studentName = campaign.profile?.full_name || "Unknown Student";
+  const photo = campaign.photo_url || campaign.profile?.avatar_url || "";
 
   return (
     <div className="bg-white p-0 pb-4 rounded-2xl shadow border border-slate-100 overflow-hidden">
@@ -39,14 +38,14 @@ export default function ProfileCard({
       {/* Student profile */}
       <div className="-mt-12 sm:-mt-14 px-4 flex items-end gap-4">
         <img
-          src={campaign.photo}
-          alt={campaign.studentName}
+          src={photo}
+          alt={studentName}
           className="w-24 h-24 sm:w-28 sm:h-28 rounded-full border-4 border-white object-cover shadow-lg"
         />
         <div className="flex flex-col justify-end">
           <div className="flex items-center gap-1">
             <span className="font-bold text-xl text-gray-900">
-              {campaign.studentName}
+              {studentName}
             </span>
             <span title="Verified student">
               <svg
@@ -73,8 +72,8 @@ export default function ProfileCard({
               className="text-blue-600 hover:underline text-sm mt-1 flex items-center gap-1"
               onClick={() =>
                 share({
-                  studentName: campaign.studentName,
-                  shareCode: campaign.shareCode,
+                  studentName: studentName,
+                  shareCode: campaign.share_code,
                 })
               }
             >
@@ -113,7 +112,7 @@ export default function ProfileCard({
             ></iframe>
           ) : (
             <img
-              src={campaign.photo}
+              src={photo}
               alt="Student video"
               className="object-cover h-full w-full"
             />

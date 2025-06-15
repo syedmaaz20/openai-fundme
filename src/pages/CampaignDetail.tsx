@@ -2,7 +2,7 @@
 import React from "react";
 import { useParams, Link } from "react-router-dom";
 import TopNav from "@/components/TopNav";
-import { campaigns } from "@/components/CampaignList";
+import { useCampaign } from "@/hooks/useCampaigns";
 import StickyDonationCard from "@/components/StickyDonationCard";
 import { toast } from "@/hooks/use-toast";
 import ProfileCard from "@/components/campaign-detail/ProfileCard";
@@ -14,11 +14,18 @@ import ImpactTracker from "@/components/campaign-detail/ImpactTracker";
 import WordsOfSupport from "@/components/campaign-detail/WordsOfSupport";
 import DonationOptions from "@/components/campaign-detail/DonationOptions";
 import CampaignFooter from "@/components/campaign-detail/CampaignFooter";
+import type { Campaign } from "@/types/campaign";
 
-const CampaignDetail = ({ campaign: campaignOverride }: { campaign?: any } = {}) => {
-  // If campaign is passed in as a prop (resolved by shortCode), use it, else fall back to normal param-based lookup.
+const CampaignDetail = ({ campaign: campaignOverride }: { campaign?: Campaign } = {}) => {
   const params = useParams();
-  const campaign = campaignOverride || campaigns.find(c => c.id === (params.id || params.campaignId));
+  const campaignId = params.id || params.campaignId;
+  
+  // Use the hook only if we don't have a campaign override
+  const { data: fetchedCampaign, isLoading, error } = useCampaign(campaignId || "", {
+    enabled: !campaignOverride && !!campaignId,
+  });
+  
+  const campaign = campaignOverride || fetchedCampaign;
 
   // Simulate support list (hardcoded for now)
   const supporters = [
@@ -27,7 +34,19 @@ const CampaignDetail = ({ campaign: campaignOverride }: { campaign?: any } = {})
     { name: "Keshon Mayo", amount: 100 },
   ];
 
-  if (!campaign) {
+  if (isLoading) {
+    return (
+      <div>
+        <TopNav />
+        <div className="h-screen flex flex-col items-center justify-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+          <p className="mt-4 text-gray-600">Loading campaign...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !campaign) {
     return (
       <div>
         <TopNav />
@@ -49,6 +68,8 @@ const CampaignDetail = ({ campaign: campaignOverride }: { campaign?: any } = {})
     });
   };
 
+  const studentName = campaign.profile?.full_name || "Unknown Student";
+
   return (
     <div className="bg-gradient-to-b from-blue-50 via-slate-50 to-white min-h-screen flex flex-col">
       <TopNav />
@@ -62,15 +83,15 @@ const CampaignDetail = ({ campaign: campaignOverride }: { campaign?: any } = {})
             <ProgressTracker goal={campaign.goal} raised={campaign.raised} />
             <ImpactTracker />
             <WordsOfSupport />
-            <DonationOptions studentName={campaign.studentName} onDonate={handleDonateClick} />
+            <DonationOptions studentName={studentName} onDonate={handleDonateClick} />
           </div>
           <div className="col-span-1 lg:col-span-2 hidden lg:block">
             <StickyDonationCard
               goal={campaign.goal}
               raised={campaign.raised}
               supporters={supporters}
-              studentName={campaign.studentName}
-              shareCode={campaign.shareCode}
+              studentName={studentName}
+              shareCode={campaign.share_code}
             />
           </div>
         </div>
@@ -79,8 +100,8 @@ const CampaignDetail = ({ campaign: campaignOverride }: { campaign?: any } = {})
             goal={campaign.goal}
             raised={campaign.raised}
             supporters={supporters}
-            studentName={campaign.studentName}
-            shareCode={campaign.shareCode}
+            studentName={studentName}
+            shareCode={campaign.share_code}
           />
         </div>
         <CampaignFooter />
