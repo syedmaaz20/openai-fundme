@@ -6,6 +6,7 @@ export interface Campaign {
   raised: number;
   photo: string;
   shareCode: string; // add this for short url
+  videoUrl?: string; // add videoUrl for youtube demo
 }
 export interface FundingBreakdown {
   label: string;
@@ -27,3 +28,4 @@ export interface Supporter {
   time?: string;
   message?: string;
 }
+

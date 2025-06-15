@@ -1,7 +1,7 @@
 
 import { CampaignCard } from "./CampaignCard";
 
-// dummy campaign data with short shareCode
+// dummy campaign data with short shareCode and videoUrl
 export const campaigns = [
   {
     id: "1",
@@ -13,7 +13,8 @@ export const campaigns = [
     photo: "https://randomuser.me/api/portraits/women/75.jpg",
     goal: 15000,
     raised: 7220,
-    shareCode: "sophie1" // short, unique code
+    shareCode: "sophie1",
+    videoUrl: "https://www.youtube.com/watch?v=bA_4thDLkoA" // Demo video
   },
   {
     id: "2",
@@ -26,7 +27,8 @@ export const campaigns = [
     photo: "https://randomuser.me/api/portraits/men/85.jpg",
     goal: 18000,
     raised: 4880,
-    shareCode: "juan2"
+    shareCode: "juan2",
+    videoUrl: "https://www.youtube.com/watch?v=bA_4thDLkoA" // Demo video
   }
 ];
 
