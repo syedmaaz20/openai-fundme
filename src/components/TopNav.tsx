@@ -1,8 +1,10 @@
 
+import { Link } from "react-router-dom";
+
 const navLinks = [
-  { label: "Home", href: "#" },
+  { label: "Home", href: "/" },
   { label: "Campaigns", href: "#campaigns" },
-  { label: "About", href: "#about" },
+  { label: "About", href: "/about" },
   { label: "How It Works", href: "#how" },
 ];
 
@@ -14,9 +16,22 @@ const TopNav = () => (
       </div>
       <ul className="hidden md:flex gap-7 text-base font-medium text-gray-700">
         {navLinks.map(link => (
-          <li key={link.href}>
-            <a href={link.href} className="relative transition-colors hover:text-blue-600 after:content-[''] after:block after:h-0.5 after:w-0 after:bg-blue-500 hover:after:w-full after:transition-all after:duration-300"></a>
-            <a href={link.href} className="relative transition-colors hover:text-blue-600">{link.label}</a>
+          <li key={link.label}>
+            {link.href.startsWith("/") ? (
+              <Link
+                to={link.href}
+                className="relative transition-colors hover:text-blue-600"
+              >
+                {link.label}
+              </Link>
+            ) : (
+              <a
+                href={link.href}
+                className="relative transition-colors hover:text-blue-600"
+              >
+                {link.label}
+              </a>
+            )}
           </li>
         ))}
         <li>
