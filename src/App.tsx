@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -11,7 +12,6 @@ import CampaignDetail from "./pages/CampaignDetail";
 import HowItWorks from "./pages/HowItWorks";
 import { findCampaignByShareCode } from "@/utils/campaignShortUrl";
 import React from "react";
-import StudentDashboard from "./pages/StudentDashboard";
 const queryClient = new QueryClient();
 
 const ShortCampaignDetail = () => {
@@ -37,7 +37,6 @@ const App = () => (
           <Route path="/how-it-works" element={<HowItWorks />} />
           {/* NEW: Share-friendly short campaign route */}
           <Route path="/c/:shareCode" element={<ShortCampaignDetail />} />
-          <Route path="/profile/student" element={<StudentDashboard />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
