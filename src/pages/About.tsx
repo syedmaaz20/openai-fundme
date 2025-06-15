@@ -1,9 +1,11 @@
 
+import TopNav from "@/components/TopNav";
 import CampaignList from "@/components/CampaignList";
 
 const About = () => {
   return (
     <div className="bg-gradient-to-b from-blue-50 via-slate-50 to-white min-h-screen flex flex-col">
+      <TopNav />
       <main className="flex-1 w-full flex flex-col items-center pt-8 px-4 lg:px-0">
         <section className="w-full max-w-2xl mx-auto mb-10 animate-fade-in">
           <h1 className="text-4xl font-extrabold text-gray-900 mb-4">About Us</h1>
@@ -39,4 +41,3 @@ const About = () => {
 };
 
 export default About;
-
