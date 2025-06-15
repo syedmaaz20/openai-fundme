@@ -17,11 +17,16 @@ export interface Campaign {
 export const CampaignCard = ({ campaign }: { campaign: Campaign }) => {
   const percent = Math.min(Math.round((campaign.raised / campaign.goal) * 100), 100);
 
+  const handleClick = () => {
+    window.scrollTo({ top: 0, left: 0, behavior: "smooth" });
+  };
+
   return (
     <Link
       to={`/campaigns/${campaign.id}`}
       className="bg-white rounded-2xl shadow group transition-transform duration-150 hover:scale-105 hover:shadow-lg border border-gray-100 flex flex-col animate-fade-in overflow-hidden cursor-pointer focus:ring-2 focus:ring-blue-400"
       aria-label={`Support ${campaign.studentName}'s education campaign`}
+      onClick={handleClick}
     >
       <img src={campaign.photo} alt={campaign.studentName} className="h-40 w-full object-cover" />
       <div className="flex-1 flex flex-col p-5">
