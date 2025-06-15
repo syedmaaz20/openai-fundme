@@ -67,6 +67,77 @@ const educationPath = [
 
 const donationChoices = [35, 50, 100];
 
+// Custom legend dots
+const LegendDot = ({ color }: { color: string }) => (
+  <span
+    className="inline-block w-3 h-3 rounded-full mr-2 align-middle"
+    style={{ backgroundColor: color }}
+  />
+);
+
+const FundingPieTooltip = ({ active, payload }: any) => {
+  if (active && payload && payload.length) {
+    const item = payload[0]?.payload;
+    return (
+      <div className="rounded-md border bg-white px-3 py-2 shadow text-xs font-semibold text-blue-700">
+        {item.label}: ${item.amount.toLocaleString()} ({item.percent}%)
+      </div>
+    );
+  }
+  return null;
+};
+
+const FundingNeedsSection = ({ campaignGoal }: { campaignGoal: number }) => (
+  <section className="bg-white rounded-2xl shadow border border-slate-100 p-6 mb-4">
+    <h2 className="text-lg font-semibold text-gray-900 mb-2">Funding Needs</h2>
+    <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 sm:gap-8">
+      {/* Pie Chart */}
+      <div className="w-48 h-48 flex flex-col items-center justify-center relative">
+        {/* Total goal */}
+        <div className="absolute z-10 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none select-none text-[1.10rem] font-bold text-blue-700">
+          ${campaignGoal.toLocaleString()}
+        </div>
+        <ResponsiveContainer width="100%" height="100%">
+          <PieChart>
+            <Pie
+              data={fundingBreakdown}
+              dataKey="amount"
+              nameKey="label"
+              cx="50%"
+              cy="50%"
+              innerRadius={48}
+              outerRadius={70}
+              paddingAngle={2}
+              isAnimationActive
+              stroke="white"
+            >
+              {fundingBreakdown.map((entry, idx) => (
+                <Cell key={entry.label} fill={entry.color} />
+              ))}
+            </Pie>
+            <Tooltip content={<FundingPieTooltip />} />
+          </PieChart>
+        </ResponsiveContainer>
+      </div>
+      {/* Legend */}
+      <ul className="flex-1 flex flex-col gap-4 mt-2 sm:mt-0">
+        {fundingBreakdown.map((b, idx) => (
+          <li key={b.label} className="flex items-center justify-between">
+            <div className="flex items-center">
+              <LegendDot color={b.color} />
+              <span className="text-gray-800 font-medium">{b.label}</span>
+            </div>
+            <div className="text-right">
+              <span className="text-gray-900 font-bold">${b.amount.toLocaleString()}</span>
+              <span className="text-gray-400 ml-2">({b.percent}%)</span>
+            </div>
+          </li>
+        ))}
+      </ul>
+    </div>
+  </section>
+);
+
 const CustomPieLabel = ({ cx, cy, width, height, campaignGoal }: any) => (
   <text
     x={cx}
@@ -79,18 +150,6 @@ const CustomPieLabel = ({ cx, cy, width, height, campaignGoal }: any) => (
     {`Total: $${campaignGoal.toLocaleString()}`}
   </text>
 );
-
-const FundingPieTooltip = ({ active, payload }: any) => {
-  if (active && payload && payload.length) {
-    const item = payload[0]?.payload;
-    return (
-      <div className="rounded-lg border bg-white px-3 py-2 shadow text-xs font-semibold text-blue-700">
-        {item.label}: ${item.amount.toLocaleString()} ({item.percent}%)
-      </div>
-    );
-  }
-  return null;
-};
 
 const CampaignDetail = () => {
   const { id } = useParams();
@@ -221,59 +280,7 @@ const CampaignDetail = () => {
             </section>
 
             {/* Funding Needs */}
-            <section className="bg-white rounded-xl shadow border border-slate-100 p-6">
-              <h2 className="text-lg font-semibold mb-2 text-gray-900">Funding Needs</h2>
-              <div className="flex flex-col md:flex-row md:items-center md:gap-6 items-center">
-                <div className="relative flex items-center justify-center mb-2 md:mb-0 md:w-1/2" style={{ minHeight: 180 }}>
-                  <div className="w-44 h-44">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <PieChart>
-                        <Pie
-                          data={fundingBreakdown}
-                          cx="50%"
-                          cy="50%"
-                          innerRadius={50}
-                          outerRadius={70}
-                          paddingAngle={1.5}
-                          dataKey="amount"
-                          isAnimationActive={true}
-                        >
-                          {fundingBreakdown.map((entry, idx) => (
-                            <Cell key={entry.label} fill={entry.color} />
-                          ))}
-                          {/* Center label */}
-                          <Label
-                            width={180}
-                            position="center"
-                            content={
-                              <CustomPieLabel campaignGoal={campaign.goal} />
-                            }
-                          />
-                        </Pie>
-                        <Tooltip
-                          content={<FundingPieTooltip />}
-                          cursor={{ fill: "#c7e2fa21" }}
-                        />
-                      </PieChart>
-                    </ResponsiveContainer>
-                  </div>
-                </div>
-                <ul className="w-full max-w-xs text-sm md:ml-6">
-                  {fundingBreakdown.map((b, idx) => (
-                    <li className="flex justify-between py-1 items-center" key={b.label}>
-                      <div className="flex items-center gap-2">
-                        <span className={`inline-block w-3 h-3 rounded-full ${b.legend}`} />
-                        <span>{b.label}</span>
-                      </div>
-                      <div>
-                        ${b.amount.toLocaleString()}{" "}
-                        <span className="text-gray-400">({b.percent}%)</span>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </section>
+            <FundingNeedsSection campaignGoal={campaign.goal} />
 
             {/* Progress Tracker */}
             <section className="bg-white rounded-xl shadow border border-slate-100 p-6">
