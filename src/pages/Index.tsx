@@ -18,16 +18,6 @@ const Index = () => {
           <h2 className="text-2xl font-bold text-gray-900 mb-6 text-left">Active Campaigns</h2>
           <CampaignList />
         </section>
-        {/* About Section */}
-        <section
-          id="about"
-          className="w-full max-w-6xl mx-auto my-20 bg-white rounded-2xl shadow p-8 flex flex-col gap-4 items-start animate-fade-in"
-        >
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">About EduFund</h2>
-          <p className="text-gray-700 text-base">
-            EduFund is dedicated to bridging the financial gap for underprivileged students by connecting them with generous donors around the world. Our crowdfunding platform empowers students to pursue their educational dreams, making quality learning accessible to everyone regardless of background. Transparency, trust, and impact are at the core of everything we do. Join us and help shape brighter futures!
-          </p>
-        </section>
       </main>
       <Footer />
     </div>
@@ -35,4 +25,3 @@ const Index = () => {
 };
 
 export default Index;
-
