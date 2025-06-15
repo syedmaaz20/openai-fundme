@@ -54,13 +54,14 @@ const TopNav = () => {
               )}
             </li>
           ))}
+          {/* Temporary Student Dashboard link for demo/testing */}
           <li>
-            <a
-              href="#"
-              className="ml-3 py-2 px-4 rounded-lg bg-gradient-to-r from-blue-600 to-green-400 text-white font-semibold shadow hover:scale-105 transition"
+            <Link
+              to="/profile/student"
+              className="ml-3 py-2 px-4 rounded-lg bg-gradient-to-r from-green-500 to-blue-500 text-white font-semibold shadow hover:scale-105 transition"
             >
-              Start a Campaign
-            </a>
+              Student Dashboard
+            </Link>
           </li>
         </ul>
         {/* Mobile: Hamburger button */}
