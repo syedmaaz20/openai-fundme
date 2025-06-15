@@ -26,8 +26,19 @@ export default function StickyDonationCard({
   const percent = Math.min(Math.round((raised / goal) * 100), 100);
 
   return (
-    <aside className="w-full sm:max-w-sm bg-white rounded-2xl shadow-lg border border-blue-100 p-5 relative
-      sm:sticky sm:top-6 z-10 mx-auto">
+    <aside
+      className={`
+        w-full sm:max-w-sm bg-white rounded-2xl shadow-lg border border-blue-100 p-5 relative z-10 mx-auto
+        sm:sticky sm:top-6 
+        lg:fixed lg:top-28 lg:right-8
+        lg:max-w-xs lg:w-[340px]
+        lg:h-auto
+      `}
+      style={{
+        // Only apply fixed height on desktop screens if desired. Not required if content is flexible.
+        // height: "auto",
+      }}
+    >
       <div className="flex flex-col gap-2">
         <div className="w-16 h-16 mx-auto my-2 relative flex items-center justify-center">
           {/* Circle progress */}
@@ -36,7 +47,7 @@ export default function StickyDonationCard({
               cx="32"
               cy="32"
               r="29"
-              stroke="#e0e7ef" // blue-100
+              stroke="#e0e7ef"
               strokeWidth="6"
               fill="none"
             />
@@ -44,13 +55,11 @@ export default function StickyDonationCard({
               cx="32"
               cy="32"
               r="29"
-              stroke="#3b82f6" // blue-500
+              stroke="#3b82f6"
               strokeWidth="6"
               fill="none"
               strokeDasharray={2 * Math.PI * 29}
-              strokeDashoffset={
-                2 * Math.PI * 29 * (1 - percent / 100)
-              }
+              strokeDashoffset={2 * Math.PI * 29 * (1 - percent / 100)}
               strokeLinecap="round"
               style={{ transition: "stroke-dashoffset 0.8s" }}
             />
@@ -120,4 +129,3 @@ export default function StickyDonationCard({
     </aside>
   );
 }
-
