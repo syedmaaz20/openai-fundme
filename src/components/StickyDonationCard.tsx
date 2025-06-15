@@ -27,7 +27,7 @@ export default function StickyDonationCard({
 
   return (
     <aside className="w-full sm:max-w-sm bg-white rounded-2xl shadow-lg border border-blue-100 p-5 relative
-      sm:sticky sm:top-6 z-10 mx-auto">
+      sm:sticky sm:top-24 z-10 mx-auto">
       <div className="flex flex-col gap-2">
         <div className="w-16 h-16 mx-auto my-2 relative flex items-center justify-center">
           {/* Circle progress */}
