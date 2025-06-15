@@ -1,4 +1,3 @@
-
 import React from "react";
 import { toast } from "@/hooks/use-toast";
 import { ArrowUp } from "lucide-react";
@@ -13,11 +12,11 @@ export default function ProfileCard({ campaign }: { campaign: { photo: string, s
         <div className="h-full w-full bg-gradient-to-b from-white/20 via-transparent to-white/80"></div>
       </div>
       {/* Student profile */}
-      <div className="-mt-10 px-4 flex items-end gap-4">
+      <div className="-mt-12 sm:-mt-14 px-4 flex items-end gap-4">
         <img
           src={campaign.photo}
           alt={campaign.studentName}
-          className="w-20 h-20 rounded-full border-4 border-white object-cover shadow-lg"
+          className="w-24 h-24 sm:w-28 sm:h-28 rounded-full border-4 border-white object-cover shadow-lg"
         />
         <div className="flex flex-col justify-end">
           <div className="flex items-center gap-1">
