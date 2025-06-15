@@ -1,4 +1,3 @@
-
 import React from "react";
 import { useParams, Link } from "react-router-dom";
 import TopNav from "@/components/TopNav";
@@ -21,9 +20,7 @@ const CampaignDetail = ({ campaign: campaignOverride }: { campaign?: Campaign } 
   const campaignId = params.id || params.campaignId;
   
   // Use the hook only if we don't have a campaign override
-  const { data: fetchedCampaign, isLoading, error } = useCampaign(campaignId || "", {
-    enabled: !campaignOverride && !!campaignId,
-  });
+  const { data: fetchedCampaign, isLoading, error } = useCampaign(campaignId || "");
   
   const campaign = campaignOverride || fetchedCampaign;
 
