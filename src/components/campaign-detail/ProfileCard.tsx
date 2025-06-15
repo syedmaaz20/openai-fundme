@@ -83,18 +83,33 @@ export default function ProfileCard({
           </div>
         </div>
       </div>
-      {/* Video/Story section - autoplay YouTube embed, no overlay share button */}
-      <div className="mt-4 px-4">
-        <div className="rounded-lg bg-gray-100 h-44 flex items-center justify-center shadow-inner relative overflow-hidden">
+      {/* Video/Story section - visually improved and responsive */}
+      <div className="mt-4 px-2 sm:px-4">
+        <div
+          className="
+            rounded-xl bg-gray-100
+            shadow-lg
+            overflow-hidden
+            relative
+            flex items-center justify-center
+            transition-all
+            h-52 sm:h-80
+          "
+          style={{
+            minHeight: "208px",          // mobile and fallback (52*4=208px)
+            background: "linear-gradient(135deg, #dbeafe 0%, #e0e7ff 100%)",
+          }}
+        >
           {youtubeId ? (
             <iframe
               width="100%"
               height="100%"
-              src={`https://www.youtube.com/embed/${youtubeId}?autoplay=1&mute=1&loop=1&playlist=${youtubeId}&controls=0&modestbranding=1&rel=0`}
+              src={`https://www.youtube.com/embed/${youtubeId}?autoplay=1&mute=1&loop=1&playlist=${youtubeId}&controls=1&modestbranding=1&rel=0`}
               title="Student video"
               allow="autoplay; encrypted-media"
               allowFullScreen
-              className="absolute top-0 left-0 w-full h-full rounded-lg"
+              className="absolute top-0 left-0 w-full h-full rounded-xl"
+              style={{ border: 0 }}
             ></iframe>
           ) : (
             <img
