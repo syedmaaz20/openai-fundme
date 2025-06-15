@@ -10,6 +10,7 @@ import Campaigns from "./pages/Campaigns";
 import CampaignDetail from "./pages/CampaignDetail";
 import HowItWorks from "./pages/HowItWorks";
 const queryClient = new QueryClient();
+import StartCampaign from "./pages/StartCampaign";
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -23,6 +24,7 @@ const App = () => (
           <Route path="/campaigns" element={<Campaigns />} />
           <Route path="/campaigns/:id" element={<CampaignDetail />} />
           <Route path="/how-it-works" element={<HowItWorks />} />
+          <Route path="/start-campaign" element={<StartCampaign />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
