@@ -1,9 +1,8 @@
-
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import React, { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import AuthModal from "@/components/AuthModal";
-import { LogOut, User } from "lucide-react";
+import { LogOut, User, Loader2 } from "lucide-react";
 
 const navLinks = [
   { label: "Home", href: "/" },
@@ -15,8 +14,9 @@ const navLinks = [
 const TopNav = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { user, logout, isAuthenticated } = useAuth();
+  const { user, logout, isAuthenticated, loading } = useAuth();
   const [showAuthModal, setShowAuthModal] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
     e.preventDefault();
@@ -30,9 +30,16 @@ const TopNav = () => {
     navigate('/student-profile');
   };
 
-  const handleLogout = () => {
-    logout();
-    navigate('/');
+  const handleLogout = async () => {
+    setIsLoggingOut(true);
+    try {
+      await logout();
+      navigate('/');
+    } catch (error) {
+      console.error('Logout error:', error);
+    } finally {
+      setIsLoggingOut(false);
+    }
   };
 
   return (
@@ -72,7 +79,11 @@ const TopNav = () => {
               </li>
             ))}
             
-            {isAuthenticated ? (
+            {loading ? (
+              <li className="flex items-center">
+                <Loader2 className="h-4 w-4 animate-spin" />
+              </li>
+            ) : isAuthenticated ? (
               <>
                 {user?.userType === 'student' && (
                   <li>
@@ -99,8 +110,13 @@ const TopNav = () => {
                     <button
                       onClick={handleLogout}
                       className="text-gray-500 hover:text-gray-700 ml-1"
+                      disabled={isLoggingOut}
                     >
-                      <LogOut size={16} />
+                      {isLoggingOut ? (
+                        <Loader2 size={16} className="animate-spin" />
+                      ) : (
+                        <LogOut size={16} />
+                      )}
                     </button>
                   </div>
                 </li>
