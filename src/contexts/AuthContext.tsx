@@ -30,6 +30,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const mountedRef = useRef(true);
   const sessionCheckRef = useRef<NodeJS.Timeout | null>(null);
   const lastActivityRef = useRef(Date.now());
+  const initTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Track user activity to prevent unnecessary session checks
   const updateActivity = useCallback(() => {
@@ -41,6 +42,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     if (!mountedRef.current) return;
 
     try {
+      setLoading(true);
+      
       // First try to refresh the session
       const { data: { session }, error } = await supabase.auth.refreshSession();
       
@@ -67,35 +70,69 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       if (mountedRef.current) {
         setUser(null);
       }
+    } finally {
+      if (mountedRef.current) {
+        setLoading(false);
+      }
     }
   }, []);
 
-  // Handle tab visibility changes
+  // Handle tab visibility changes with retry logic
   const handleVisibilityChange = useCallback(async () => {
-    if (document.visibilityState === 'visible' && isInitialized) {
+    if (document.visibilityState === 'visible' && isInitialized && mountedRef.current) {
       // Only refresh if there's been some time since last activity
       const timeSinceActivity = Date.now() - lastActivityRef.current;
       if (timeSinceActivity > 30000) { // 30 seconds
-        await refreshSession();
+        updateActivity();
+        try {
+          await refreshSession();
+        } catch (error) {
+          console.error('Visibility change refresh failed:', error);
+          // Force a session check on next interaction
+          setTimeout(() => {
+            if (mountedRef.current) {
+              refreshSession();
+            }
+          }, 1000);
+        }
       }
     }
   }, [refreshSession, isInitialized]);
 
-  // Handle window focus
+  // Handle window focus with immediate session validation
   const handleWindowFocus = useCallback(async () => {
-    if (isInitialized) {
+    if (isInitialized && mountedRef.current) {
       const timeSinceActivity = Date.now() - lastActivityRef.current;
       if (timeSinceActivity > 30000) { // 30 seconds
-        await refreshSession();
+        updateActivity();
+        try {
+          // Quick session validation on focus
+          const { data: { session } } = await supabase.auth.getSession();
+          if (!session && user) {
+            // Session lost, clear user
+            setUser(null);
+            setLoading(false);
+          } else if (session && !user) {
+            // Session exists but no user, refresh
+            await refreshSession();
+          }
+        } catch (error) {
+          console.error('Focus refresh failed:', error);
+        }
       }
     }
-  }, [refreshSession, isInitialized]);
+  }, [refreshSession, isInitialized, user]);
 
   // Handle storage events (when auth state changes in another tab)
   const handleStorageChange = useCallback(async (e: StorageEvent) => {
-    if (e.key === 'supabase.auth.token' && isInitialized) {
+    if (e.key?.includes('supabase.auth.token') && isInitialized && mountedRef.current) {
       // Auth state changed in another tab, refresh our session
-      setTimeout(() => refreshSession(), 100);
+      updateActivity();
+      setTimeout(() => {
+        if (mountedRef.current) {
+          refreshSession();
+        }
+      }, 100);
     }
   }, [refreshSession, isInitialized]);
 
@@ -132,7 +169,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   useEffect(() => {
     mountedRef.current = true;
     
-    // Get initial session with timeout
+    // Get initial session with extended timeout and retry logic
     const getInitialSession = async () => {
       try {
         const { data: { session }, error } = await supabase.auth.getSession();
@@ -159,14 +196,20 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       }
     };
 
-    // Set a timeout to prevent infinite loading
-    const timeoutId = setTimeout(() => {
+    // Set a timeout to prevent infinite loading - extended to 10 seconds
+    initTimeoutRef.current = setTimeout(() => {
       if (mountedRef.current && loading) {
         console.warn('Auth loading timeout - setting loading to false');
         setLoading(false);
         setIsInitialized(true);
+        // Try one more session check
+        supabase.auth.getSession().then(({ data: { session } }) => {
+          if (session?.user && mountedRef.current) {
+            fetchUserProfile(session.user);
+          }
+        }).catch(console.error);
       }
-    }, 5000); // 5 second timeout
+    }, 10000); // Extended to 10 seconds
 
     getInitialSession();
 
@@ -188,14 +231,15 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       } finally {
         if (mountedRef.current) {
           setLoading(false);
+          setIsInitialized(true);
         }
       }
     });
 
     // Add event listeners for tab/window focus and storage changes
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    window.addEventListener('focus', handleWindowFocus);
-    window.addEventListener('storage', handleStorageChange);
+    document.addEventListener('visibilitychange', handleVisibilityChange, { passive: true });
+    window.addEventListener('focus', handleWindowFocus, { passive: true });
+    window.addEventListener('storage', handleStorageChange, { passive: true });
     
     // Add activity listeners
     const activityEvents = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart', 'click'];
@@ -205,17 +249,34 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
     // Set up periodic session check (every 5 minutes when active)
     sessionCheckRef.current = setInterval(async () => {
-      if (document.visibilityState === 'visible' && isInitialized) {
+      if (document.visibilityState === 'visible' && isInitialized && mountedRef.current) {
         const timeSinceActivity = Date.now() - lastActivityRef.current;
         if (timeSinceActivity < 300000) { // Only if active in last 5 minutes
-          await refreshSession();
+          try {
+            // Quick session validation
+            const { data: { session } } = await supabase.auth.getSession();
+            if (!session && user) {
+              setUser(null);
+            } else if (session && session.expires_at) {
+              const expiresAt = session.expires_at * 1000;
+              const timeUntilExpiry = expiresAt - Date.now();
+              // Refresh if expiring within 5 minutes
+              if (timeUntilExpiry < 300000) {
+                await refreshSession();
+              }
+            }
+          } catch (error) {
+            console.error('Periodic session check failed:', error);
+          }
         }
       }
     }, 300000); // 5 minutes
 
     return () => {
       mountedRef.current = false;
-      clearTimeout(timeoutId);
+      if (initTimeoutRef.current) {
+        clearTimeout(initTimeoutRef.current);
+      }
       if (sessionCheckRef.current) {
         clearInterval(sessionCheckRef.current);
       }
