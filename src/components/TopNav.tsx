@@ -1,9 +1,5 @@
-
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import React from "react";
-import { useAuth } from "@/contexts/AuthContext";
-import { Button } from "@/components/ui/button";
-import UserMenu from "@/components/auth/UserMenu";
 
 const navLinks = [
   { label: "Home", href: "/" },
@@ -15,7 +11,6 @@ const navLinks = [
 const TopNav = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { user, loading } = useAuth();
 
   const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
     e.preventDefault();
@@ -23,10 +18,6 @@ const TopNav = () => {
       navigate(href);
     }
     setTimeout(() => window.scrollTo({ top: 0, behavior: "smooth" }), 0);
-  };
-
-  const handleAuthClick = () => {
-    navigate('/auth');
   };
 
   return (
@@ -63,31 +54,15 @@ const TopNav = () => {
               )}
             </li>
           ))}
+          <li>
+            <a
+              href="#"
+              className="ml-3 py-2 px-4 rounded-lg bg-gradient-to-r from-blue-600 to-green-400 text-white font-semibold shadow hover:scale-105 transition"
+            >
+              Start a Campaign
+            </a>
+          </li>
         </ul>
-        
-        <div className="flex items-center gap-3">
-          {!loading && (
-            <>
-              {user ? (
-                <UserMenu />
-              ) : (
-                <Button
-                  onClick={handleAuthClick}
-                  className="bg-gradient-to-r from-blue-600 to-green-400 text-white font-semibold shadow hover:scale-105 transition"
-                >
-                  Sign In
-                </Button>
-              )}
-              <a
-                href="#"
-                className="py-2 px-4 rounded-lg bg-gradient-to-r from-blue-600 to-green-400 text-white font-semibold shadow hover:scale-105 transition"
-              >
-                Start a Campaign
-              </a>
-            </>
-          )}
-        </div>
-        
         {/* Mobile: Hamburger button */}
         <div className="md:hidden">
           {/* Just placeholder: for MVP we omit mobile nav */}
