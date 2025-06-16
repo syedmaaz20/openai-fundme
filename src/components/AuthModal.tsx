@@ -50,7 +50,9 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
       
       // Redirect based on user type
       if (formData.userType === 'student') {
-        navigate('/student-profile');
+        navigate('/student-dashboard');
+      } else if (formData.userType === 'donor') {
+        navigate('/donor-dashboard');
       } else {
         navigate('/campaigns');
       }
