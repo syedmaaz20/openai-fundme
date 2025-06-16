@@ -1,13 +1,17 @@
-
 import React, { useState } from "react";
-import { Edit3, Check, X, Camera, Share2 } from "lucide-react";
+import { Edit3, Check, X, Camera, Share2, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useShareCampaign } from "@/hooks/useShareCampaign";
+import { uploadImage } from "@/utils/supabaseStorage";
+import { useAuth } from "@/contexts/AuthContext";
+import { toast } from "@/hooks/use-toast";
 
 interface ProfileData {
   studentName: string;
   photo: string;
+  bannerUrl?: string;
+  youtubeVideoUrl?: string;
   shareCode: string;
 }
 
@@ -19,7 +23,9 @@ interface EditableProfileCardProps {
 const EditableProfileCard: React.FC<EditableProfileCardProps> = ({ data, onUpdate }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editData, setEditData] = useState(data);
+  const [uploading, setUploading] = useState<'avatar' | 'banner' | null>(null);
   const share = useShareCampaign();
+  const { user } = useAuth();
 
   const handleSave = () => {
     onUpdate(editData);
@@ -31,13 +37,52 @@ const EditableProfileCard: React.FC<EditableProfileCardProps> = ({ data, onUpdat
     setIsEditing(false);
   };
 
+  const handleImageUpload = async (file: File, type: 'avatar' | 'banner') => {
+    if (!user?.id) return;
+
+    try {
+      setUploading(type);
+      const bucket = type === 'avatar' ? 'avatars' : 'banners';
+      const imageUrl = await uploadImage(file, bucket, user.id);
+      
+      const updateKey = type === 'avatar' ? 'photo' : 'bannerUrl';
+      const newData = { ...editData, [updateKey]: imageUrl };
+      setEditData(newData);
+      
+      toast({
+        title: "Success",
+        description: `${type === 'avatar' ? 'Profile' : 'Banner'} image uploaded successfully`,
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: `Failed to upload ${type} image`,
+        variant: "destructive",
+      });
+    } finally {
+      setUploading(null);
+    }
+  };
+
+  const getYoutubeId = (url?: string) => {
+    if (!url) return "";
+    const match =
+      url.match(
+        /(?:youtube\.com.*(?:\/|v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})/
+      ) ||
+      url.match(/[?&]v=([a-zA-Z0-9_-]{11})/);
+    return match ? match[1] : "";
+  };
+
+  const youtubeId = getYoutubeId(editData.youtubeVideoUrl);
+
   return (
     <div className="bg-white p-0 pb-4 rounded-2xl shadow border border-slate-100 overflow-hidden">
       {/* Banner */}
       <div
         className="h-32 sm:h-48 w-full bg-cover bg-center relative"
         style={{
-          backgroundImage: "url(https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=600&q=80)",
+          backgroundImage: `url(${editData.bannerUrl || "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=600&q=80"})`,
         }}
       >
         <div className="h-full w-full bg-gradient-to-b from-white/20 via-transparent to-white/80"></div>
@@ -50,6 +95,33 @@ const EditableProfileCard: React.FC<EditableProfileCardProps> = ({ data, onUpdat
           {isEditing ? <X size={16} /> : <Edit3 size={16} />}
           {isEditing ? 'Cancel' : 'Edit'}
         </Button>
+        {isEditing && (
+          <div className="absolute bottom-4 right-4">
+            <input
+              type="file"
+              accept="image/*"
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) handleImageUpload(file, 'banner');
+              }}
+              className="hidden"
+              id="banner-upload"
+            />
+            <Button
+              size="sm"
+              className="bg-white/80 text-gray-700 hover:bg-white"
+              onClick={() => document.getElementById('banner-upload')?.click()}
+              disabled={uploading === 'banner'}
+            >
+              {uploading === 'banner' ? (
+                <Upload className="animate-spin" size={14} />
+              ) : (
+                <Camera size={14} />
+              )}
+              Banner
+            </Button>
+          </div>
+        )}
       </div>
 
       {/* Student profile */}
@@ -61,25 +133,51 @@ const EditableProfileCard: React.FC<EditableProfileCardProps> = ({ data, onUpdat
             className="w-24 h-24 sm:w-28 sm:h-28 rounded-full border-4 border-white object-cover shadow-lg"
           />
           {isEditing && (
-            <Button
-              size="sm"
-              className="absolute bottom-0 right-0 rounded-full w-8 h-8 p-0"
-            >
-              <Camera size={14} />
-            </Button>
+            <>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) handleImageUpload(file, 'avatar');
+                }}
+                className="hidden"
+                id="avatar-upload"
+              />
+              <Button
+                size="sm"
+                className="absolute bottom-0 right-0 rounded-full w-8 h-8 p-0"
+                onClick={() => document.getElementById('avatar-upload')?.click()}
+                disabled={uploading === 'avatar'}
+              >
+                {uploading === 'avatar' ? (
+                  <Upload className="animate-spin" size={14} />
+                ) : (
+                  <Camera size={14} />
+                )}
+              </Button>
+            </>
           )}
         </div>
 
         <div className="flex flex-col justify-end flex-1">
           {isEditing ? (
-            <div className="flex gap-2 items-center">
+            <div className="space-y-2">
               <Input
                 value={editData.studentName}
                 onChange={(e) => setEditData(prev => ({ ...prev, studentName: e.target.value }))}
                 className="text-xl font-bold"
+                placeholder="Your name"
+              />
+              <Input
+                value={editData.youtubeVideoUrl || ''}
+                onChange={(e) => setEditData(prev => ({ ...prev, youtubeVideoUrl: e.target.value }))}
+                placeholder="YouTube video URL (optional)"
+                className="text-sm"
               />
               <Button size="sm" onClick={handleSave}>
-                <Check size={16} />
+                <Check size={16} className="mr-1" />
+                Save
               </Button>
             </div>
           ) : (
@@ -132,14 +230,27 @@ const EditableProfileCard: React.FC<EditableProfileCardProps> = ({ data, onUpdat
           className="rounded-xl bg-gray-100 shadow-lg overflow-hidden relative flex items-center justify-center transition-all h-52 sm:h-80"
           style={{
             minHeight: "208px",
-            background: "linear-gradient(135deg, #dbeafe 0%, #e0e7ff 100%)",
+            background: youtubeId ? "transparent" : "linear-gradient(135deg, #dbeafe 0%, #e0e7ff 100%)",
           }}
         >
-          <img
-            src={data.photo}
-            alt="Student profile"
-            className="object-cover h-full w-full"
-          />
+          {youtubeId ? (
+            <iframe
+              width="100%"
+              height="100%"
+              src={`https://www.youtube.com/embed/${youtubeId}?autoplay=0&mute=0&loop=0&controls=1&modestbranding=1&rel=0`}
+              title="Student video"
+              allow="autoplay; encrypted-media"
+              allowFullScreen
+              className="absolute top-0 left-0 w-full h-full rounded-xl"
+              style={{ border: 0 }}
+            ></iframe>
+          ) : (
+            <img
+              src={data.photo}
+              alt="Student profile"
+              className="object-cover h-full w-full"
+            />
+          )}
         </div>
       </div>
     </div>

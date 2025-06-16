@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Share2 } from "lucide-react";
 import { useShareCampaign } from "@/hooks/useShareCampaign";
@@ -19,7 +18,13 @@ const getYoutubeId = (url?: string) => {
 export default function ProfileCard({
   campaign,
 }: {
-  campaign: Partial<Campaign> & { photo: string; studentName: string; shareCode: string; videoUrl?: string };
+  campaign: Partial<Campaign> & { 
+    photo: string; 
+    studentName: string; 
+    shareCode: string; 
+    videoUrl?: string;
+    bannerUrl?: string;
+  };
 }) {
   const share = useShareCampaign();
   const youtubeId = getYoutubeId(campaign.videoUrl);
@@ -30,8 +35,7 @@ export default function ProfileCard({
       <div
         className="h-32 sm:h-48 w-full bg-cover bg-center"
         style={{
-          backgroundImage:
-            "url(https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=600&q=80)",
+          backgroundImage: `url(${campaign.bannerUrl || "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=600&q=80"})`,
         }}
       >
         <div className="h-full w-full bg-gradient-to-b from-white/20 via-transparent to-white/80"></div>
@@ -97,14 +101,14 @@ export default function ProfileCard({
           "
           style={{
             minHeight: "208px",          // mobile and fallback (52*4=208px)
-            background: "linear-gradient(135deg, #dbeafe 0%, #e0e7ff 100%)",
+            background: youtubeId ? "transparent" : "linear-gradient(135deg, #dbeafe 0%, #e0e7ff 100%)",
           }}
         >
           {youtubeId ? (
             <iframe
               width="100%"
               height="100%"
-              src={`https://www.youtube.com/embed/${youtubeId}?autoplay=1&mute=1&loop=1&playlist=${youtubeId}&controls=1&modestbranding=1&rel=0`}
+              src={`https://www.youtube.com/embed/${youtubeId}?autoplay=0&mute=0&loop=0&controls=1&modestbranding=1&rel=0`}
               title="Student video"
               allow="autoplay; encrypted-media"
               allowFullScreen

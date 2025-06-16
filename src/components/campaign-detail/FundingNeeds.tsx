@@ -1,10 +1,6 @@
-
 import React from "react";
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Label } from "recharts";
-import { getFundingBreakdown } from "@/utils/campaignHelpers";
 import type { FundingBreakdown } from "@/types/campaign";
-
-const fundingBreakdown = getFundingBreakdown();
 
 const LegendDot = ({ color }: { color: string }) => (
   <span
@@ -27,9 +23,19 @@ const FundingPieTooltip = ({ active, payload }: any) => {
 
 interface FundingNeedsProps {
   campaignGoal: number;
+  fundingBreakdown?: FundingBreakdown[];
 }
 
-const FundingNeeds: React.FC<FundingNeedsProps> = ({ campaignGoal }) => {
+const FundingNeeds: React.FC<FundingNeedsProps> = ({ campaignGoal, fundingBreakdown = [] }) => {
+  // Default breakdown if none provided
+  const defaultBreakdown: FundingBreakdown[] = [
+    { label: 'Tuition', amount: Math.round(campaignGoal * 0.6), percent: 60, color: '#3b82f6' },
+    { label: 'Living Expenses', amount: Math.round(campaignGoal * 0.25), percent: 25, color: '#10b981' },
+    { label: 'Books & Supplies', amount: Math.round(campaignGoal * 0.15), percent: 15, color: '#f59e0b' }
+  ];
+
+  const breakdown = fundingBreakdown.length > 0 ? fundingBreakdown : defaultBreakdown;
+
   return (
     <section className="bg-white rounded-2xl shadow border border-slate-100 p-6 mb-4">
       <h2 className="text-lg font-semibold text-gray-900 mb-4">Funding Needs</h2>
@@ -40,7 +46,7 @@ const FundingNeeds: React.FC<FundingNeedsProps> = ({ campaignGoal }) => {
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
-                  data={fundingBreakdown}
+                  data={breakdown}
                   dataKey="amount"
                   nameKey="label"
                   cx="50%"
@@ -51,7 +57,7 @@ const FundingNeeds: React.FC<FundingNeedsProps> = ({ campaignGoal }) => {
                   isAnimationActive
                   stroke="white"
                 >
-                  {fundingBreakdown.map((entry) => (
+                  {breakdown.map((entry) => (
                     <Cell key={entry.label} fill={entry.color} />
                   ))}
                   <Label
@@ -72,7 +78,7 @@ const FundingNeeds: React.FC<FundingNeedsProps> = ({ campaignGoal }) => {
         </div>
         {/* Legend aligned center vertically with the chart */}
         <ul className="flex-1 flex flex-col gap-5 justify-center min-h-[160px]">
-          {fundingBreakdown.map((b) => (
+          {breakdown.map((b) => (
             <li key={b.label} className="flex items-center justify-between text-base">
               <div className="flex items-center">
                 <LegendDot color={b.color} />

@@ -1,15 +1,9 @@
-
 import React, { useState } from "react";
 import { Edit3, Check, X, Plus, Trash2, Target } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-
-interface Goal {
-  title: string;
-  description: string;
-  completed: boolean;
-}
+import type { Goal } from "@/types/campaign";
 
 interface EditableGoalsProps {
   goals: Goal[];
@@ -114,22 +108,28 @@ const EditableGoals: React.FC<EditableGoalsProps> = ({ goals, onUpdate }) => {
           </Button>
         </div>
       ) : (
-        <ul className="space-y-3">
-          {goals.map((goal, index) => (
-            <li key={index} className="flex items-start gap-3">
-              <Target 
-                size={20} 
-                className={goal.completed ? "text-green-500 mt-0.5" : "text-gray-400 mt-0.5"} 
-              />
-              <div className="flex-1">
-                <div className={`font-medium ${goal.completed ? 'text-green-700 line-through' : 'text-gray-900'}`}>
-                  {goal.title}
-                </div>
-                <div className="text-sm text-gray-600">{goal.description}</div>
-              </div>
-            </li>
-          ))}
-        </ul>
+        <div>
+          {goals.length > 0 ? (
+            <ul className="space-y-3">
+              {goals.map((goal, index) => (
+                <li key={index} className="flex items-start gap-3">
+                  <Target 
+                    size={20} 
+                    className={goal.completed ? "text-green-500 mt-0.5" : "text-gray-400 mt-0.5"} 
+                  />
+                  <div className="flex-1">
+                    <div className={`font-medium ${goal.completed ? 'text-green-700 line-through' : 'text-gray-900'}`}>
+                      {goal.title}
+                    </div>
+                    <div className="text-sm text-gray-600">{goal.description}</div>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="text-gray-500 text-center">No goals added yet.</p>
+          )}
+        </div>
       )}
     </section>
   );

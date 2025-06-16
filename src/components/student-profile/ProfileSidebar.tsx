@@ -1,15 +1,25 @@
-
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { Eye, Share2, Settings, TrendingUp, Users, DollarSign } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
+import { useShareCampaign } from "@/hooks/useShareCampaign";
 
 interface ProfileSidebarProps {
-  profileData: any;
+  profileData: {
+    studentName: string;
+    photo: string;
+    program: string;
+    goal: number;
+    raised: number;
+    shareCode: string;
+    campaignPublished: boolean;
+  };
   onUpdate: (updates: any) => void;
 }
 
 const ProfileSidebar: React.FC<ProfileSidebarProps> = ({ profileData, onUpdate }) => {
+  const share = useShareCampaign();
+
   const handlePublishCampaign = () => {
     onUpdate({ campaignPublished: !profileData.campaignPublished });
     toast({
@@ -28,11 +38,13 @@ const ProfileSidebar: React.FC<ProfileSidebarProps> = ({ profileData, onUpdate }
   };
 
   const handleShare = () => {
-    toast({
-      title: "Share Link Copied!",
-      description: `edufund.com/c/${profileData.shareCode}`,
+    share({
+      studentName: profileData.studentName,
+      shareCode: profileData.shareCode,
     });
   };
+
+  const progress = profileData.goal > 0 ? (profileData.raised / profileData.goal) * 100 : 0;
 
   return (
     <div className="sticky top-6 space-y-6">
@@ -73,28 +85,28 @@ const ProfileSidebar: React.FC<ProfileSidebarProps> = ({ profileData, onUpdate }
               <Eye size={16} className="text-blue-500" />
               <span className="text-sm">Views</span>
             </div>
-            <span className="font-medium">1,234</span>
+            <span className="font-medium">0</span>
           </div>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Users size={16} className="text-green-500" />
               <span className="text-sm">Supporters</span>
             </div>
-            <span className="font-medium">23</span>
+            <span className="font-medium">0</span>
           </div>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <DollarSign size={16} className="text-yellow-500" />
               <span className="text-sm">Raised</span>
             </div>
-            <span className="font-medium">$3,450</span>
+            <span className="font-medium">${profileData.raised.toLocaleString()}</span>
           </div>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <TrendingUp size={16} className="text-purple-500" />
               <span className="text-sm">Progress</span>
             </div>
-            <span className="font-medium">23%</span>
+            <span className="font-medium">{progress.toFixed(1)}%</span>
           </div>
         </div>
       </div>

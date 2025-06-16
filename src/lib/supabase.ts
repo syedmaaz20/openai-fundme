@@ -21,6 +21,16 @@ export interface Database {
           last_name: string
           user_type: 'student' | 'donor' | 'admin'
           avatar_url?: string
+          banner_url?: string
+          youtube_video_url?: string
+          story?: string
+          education_path?: any
+          funding_needs?: any[]
+          goals?: any[]
+          share_code?: string
+          campaign_published: boolean
+          funding_goal?: number
+          funding_raised: number
           created_at: string
           updated_at: string
         }
@@ -31,6 +41,16 @@ export interface Database {
           last_name: string
           user_type: 'student' | 'donor' | 'admin'
           avatar_url?: string
+          banner_url?: string
+          youtube_video_url?: string
+          story?: string
+          education_path?: any
+          funding_needs?: any[]
+          goals?: any[]
+          share_code?: string
+          campaign_published?: boolean
+          funding_goal?: number
+          funding_raised?: number
           created_at?: string
           updated_at?: string
         }
@@ -41,6 +61,16 @@ export interface Database {
           last_name?: string
           user_type?: 'student' | 'donor' | 'admin'
           avatar_url?: string
+          banner_url?: string
+          youtube_video_url?: string
+          story?: string
+          education_path?: any
+          funding_needs?: any[]
+          goals?: any[]
+          share_code?: string
+          campaign_published?: boolean
+          funding_goal?: number
+          funding_raised?: number
           created_at?: string
           updated_at?: string
         }
