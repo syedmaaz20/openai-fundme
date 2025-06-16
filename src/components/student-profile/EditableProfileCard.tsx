@@ -1,12 +1,14 @@
 
 import React, { useState } from "react";
-import { Edit3, Check, X, Camera } from "lucide-react";
+import { Edit3, Check, X, Camera, Share2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useShareCampaign } from "@/hooks/useShareCampaign";
 
 interface ProfileData {
   studentName: string;
   photo: string;
+  shareCode: string;
 }
 
 interface EditableProfileCardProps {
@@ -17,6 +19,7 @@ interface EditableProfileCardProps {
 const EditableProfileCard: React.FC<EditableProfileCardProps> = ({ data, onUpdate }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editData, setEditData] = useState(data);
+  const share = useShareCampaign();
 
   const handleSave = () => {
     onUpdate(editData);
@@ -80,29 +83,44 @@ const EditableProfileCard: React.FC<EditableProfileCardProps> = ({ data, onUpdat
               </Button>
             </div>
           ) : (
-            <div className="flex items-center gap-1">
-              <span className="font-bold text-xl text-gray-900">
-                {data.studentName}
-              </span>
-              <span title="Verified student">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="inline-block ml-1"
-                  width="20"
-                  height="20"
-                  fill="currentColor"
-                  viewBox="0 0 24 24"
+            <div className="flex flex-col">
+              <div className="flex items-center gap-1">
+                <span className="font-bold text-xl text-gray-900">
+                  {data.studentName}
+                </span>
+                <span title="Verified student">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="inline-block ml-1"
+                    width="20"
+                    height="20"
+                    fill="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle cx="12" cy="12" r="10" fill="#3193ff" />
+                    <path
+                      d="M16 9l-4.2 6L8 13"
+                      stroke="#fff"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                </span>
+              </div>
+              <div>
+                <button
+                  className="text-blue-600 hover:underline text-sm mt-1 flex items-center gap-1"
+                  onClick={() =>
+                    share({
+                      studentName: data.studentName,
+                      shareCode: data.shareCode,
+                    })
+                  }
                 >
-                  <circle cx="12" cy="12" r="10" fill="#3193ff" />
-                  <path
-                    d="M16 9l-4.2 6L8 13"
-                    stroke="#fff"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-              </span>
+                  <Share2 size={15} /> Share
+                </button>
+              </div>
             </div>
           )}
         </div>

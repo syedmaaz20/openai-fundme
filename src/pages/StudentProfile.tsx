@@ -17,8 +17,9 @@ const StudentProfile = () => {
     photo: user?.avatar || 'https://images.unsplash.com/photo-1494790108755-2616b612b407?auto=format&fit=crop&w=150&h=150&q=80',
     program: 'Social Work',
     institution: 'University of California, Los Angeles',
+    institutionUrl: 'https://www.ucla.edu/',
     graduationDate: 'June 2025',
-    story: "I'm a first-generation college student from a low-income background. My dream is to become a social worker and help others in my community.",
+    story: "I'm a first-generation college student from a low-income background. My dream is to become a social worker and help others in my community. However, the financial burden of tuition and living expenses is making it difficult to continue my studies. Any support you can offer would mean the world to me and bring me closer to achieving my goals. Growing up in an underserved community, I witnessed firsthand the challenges that many families face. This experience has shaped my passion for social work and my commitment to making a positive impact in the lives of others.",
     goal: 15000,
     fundingBreakdown: [
       { label: 'Tuition', amount: 8000, percent: 53.3, color: '#3b82f6' },
@@ -61,6 +62,7 @@ const StudentProfile = () => {
               data={{
                 program: profileData.program,
                 institution: profileData.institution,
+                institutionUrl: profileData.institutionUrl,
                 graduationDate: profileData.graduationDate
               }}
               onUpdate={(educationData) => updateProfileData(educationData)}

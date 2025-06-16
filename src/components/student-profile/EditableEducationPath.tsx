@@ -1,24 +1,28 @@
 
 import React, { useState } from "react";
-import { Edit3, Check, X } from "lucide-react";
+import { Edit3, Check, X, Link as LinkIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 
 interface EducationData {
   program: string;
   institution: string;
   graduationDate: string;
+  institutionUrl?: string;
 }
 
 interface EditableEducationPathProps {
   data: EducationData;
-  onUpdate: (updates: EducationData) => void;
+  onUpdate: (data: EducationData) => void;
 }
 
 const EditableEducationPath: React.FC<EditableEducationPathProps> = ({ data, onUpdate }) => {
   const [isEditing, setIsEditing] = useState(false);
-  const [editData, setEditData] = useState(data);
+  const [editData, setEditData] = useState({
+    ...data,
+    institutionUrl: data.institutionUrl || 'https://www.ucla.edu/'
+  });
 
   const handleSave = () => {
     onUpdate(editData);
@@ -26,9 +30,23 @@ const EditableEducationPath: React.FC<EditableEducationPathProps> = ({ data, onU
   };
 
   const handleCancel = () => {
-    setEditData(data);
+    setEditData({
+      ...data,
+      institutionUrl: data.institutionUrl || 'https://www.ucla.edu/'
+    });
     setIsEditing(false);
   };
+
+  const educationPath = [
+    { label: "Program", value: editData.program, field: "program" },
+    { 
+      label: "Institution", 
+      value: editData.institution,
+      field: "institution",
+      hasLink: true
+    },
+    { label: "Graduation Date", value: editData.graduationDate, field: "graduationDate" }
+  ];
 
   return (
     <section className="bg-white rounded-xl shadow border border-slate-100 p-6">
@@ -46,49 +64,61 @@ const EditableEducationPath: React.FC<EditableEducationPathProps> = ({ data, onU
 
       {isEditing ? (
         <div className="space-y-4">
-          <div>
-            <Label htmlFor="program">Program</Label>
+          {educationPath.map((item, i) => (
+            <div key={i} className="space-y-2">
+              <label className="text-sm font-medium text-gray-700">{item.label}</label>
+              <Input
+                value={editData[item.field as keyof EducationData] as string}
+                onChange={(e) => setEditData(prev => ({ ...prev, [item.field]: e.target.value }))}
+                placeholder={`Enter ${item.label.toLowerCase()}`}
+              />
+            </div>
+          ))}
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-gray-700">Institution Website</label>
             <Input
-              id="program"
-              value={editData.program}
-              onChange={(e) => setEditData(prev => ({ ...prev, program: e.target.value }))}
-            />
-          </div>
-          <div>
-            <Label htmlFor="institution">Institution</Label>
-            <Input
-              id="institution"
-              value={editData.institution}
-              onChange={(e) => setEditData(prev => ({ ...prev, institution: e.target.value }))}
-            />
-          </div>
-          <div>
-            <Label htmlFor="graduationDate">Graduation Date</Label>
-            <Input
-              id="graduationDate"
-              value={editData.graduationDate}
-              onChange={(e) => setEditData(prev => ({ ...prev, graduationDate: e.target.value }))}
+              value={editData.institutionUrl}
+              onChange={(e) => setEditData(prev => ({ ...prev, institutionUrl: e.target.value }))}
+              placeholder="Enter institution website URL"
             />
           </div>
           <Button onClick={handleSave} className="w-full">
             <Check size={16} className="mr-2" />
-            Save Changes
+            Save Education Path
           </Button>
         </div>
       ) : (
         <div className="divide-y">
-          <div className="flex justify-between py-2 text-gray-700 text-sm">
-            <span className="font-medium">Program</span>
-            <span className="text-right">{data.program}</span>
-          </div>
-          <div className="flex justify-between py-2 text-gray-700 text-sm">
-            <span className="font-medium">Institution</span>
-            <span className="text-right">{data.institution}</span>
-          </div>
-          <div className="flex justify-between py-2 text-gray-700 text-sm">
-            <span className="font-medium">Graduation Date</span>
-            <span className="text-right">{data.graduationDate}</span>
-          </div>
+          {educationPath.map((item, i) => (
+            <div key={i} className="flex justify-between py-2 text-gray-700 text-sm">
+              <span className="font-medium">{item.label}</span>
+              <span className="text-right">
+                {item.hasLink ? (
+                  <span className="flex items-center gap-1">
+                    {item.value}
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <a
+                          href={editData.institutionUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="ml-1 text-blue-600 hover:text-blue-800"
+                          aria-label="Visit Institution Website"
+                        >
+                          <LinkIcon size={16} />
+                        </a>
+                      </TooltipTrigger>
+                      <TooltipContent side="top">
+                        Visit Institution Website
+                      </TooltipContent>
+                    </Tooltip>
+                  </span>
+                ) : (
+                  item.value
+                )}
+              </span>
+            </div>
+          ))}
         </div>
       )}
     </section>

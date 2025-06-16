@@ -11,6 +11,7 @@ interface EditableStoryProps {
 const EditableStory: React.FC<EditableStoryProps> = ({ story, onUpdate }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editStory, setEditStory] = useState(story);
+  const [isExpanded, setIsExpanded] = useState(false);
 
   const handleSave = () => {
     onUpdate(editStory);
@@ -21,6 +22,10 @@ const EditableStory: React.FC<EditableStoryProps> = ({ story, onUpdate }) => {
     setEditStory(story);
     setIsEditing(false);
   };
+
+  // Check if story is long enough to need read more
+  const isLongStory = story.length > 200;
+  const displayStory = isExpanded || !isLongStory ? story : story.substring(0, 200) + "...";
 
   return (
     <section className="bg-white rounded-xl shadow border border-slate-100 p-6">
@@ -50,7 +55,17 @@ const EditableStory: React.FC<EditableStoryProps> = ({ story, onUpdate }) => {
           </Button>
         </div>
       ) : (
-        <p className="text-gray-700">{story}</p>
+        <div>
+          <p className="text-gray-700 mb-2">{displayStory}</p>
+          {isLongStory && (
+            <button
+              onClick={() => setIsExpanded(!isExpanded)}
+              className="text-blue-600 hover:underline text-sm font-medium"
+            >
+              {isExpanded ? 'Read less' : 'Read more'}
+            </button>
+          )}
+        </div>
       )}
     </section>
   );
