@@ -1,8 +1,9 @@
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import AuthModal from "@/components/AuthModal";
 import { LogOut, User, Loader2 } from "lucide-react";
+import { useSessionPersistence } from "@/hooks/useSessionPersistence";
 
 const navLinks = [
   { label: "Home", href: "/" },
@@ -14,9 +15,27 @@ const navLinks = [
 const TopNav = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { user, logout, isAuthenticated, loading } = useAuth();
+  const { user, logout, isAuthenticated, loading, refreshSession } = useAuth();
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [initialLoadComplete, setInitialLoadComplete] = useState(false);
+
+  // Use session persistence hook
+  useSessionPersistence({
+    onSessionRefresh: () => {
+      console.log('Session refreshed successfully');
+    },
+    onSessionExpired: () => {
+      console.log('Session expired, user will be logged out');
+    }
+  });
+
+  // Track initial load completion
+  useEffect(() => {
+    if (!loading && !initialLoadComplete) {
+      setInitialLoadComplete(true);
+    }
+  }, [loading, initialLoadComplete]);
 
   const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
     e.preventDefault();
@@ -43,8 +62,8 @@ const TopNav = () => {
   };
 
   const renderAuthSection = () => {
-    // Show loading spinner only for a brief moment during initial load
-    if (loading) {
+    // Only show loading spinner during initial load, not on subsequent refreshes
+    if (loading && !initialLoadComplete) {
       return (
         <li className="flex items-center">
           <Loader2 className="h-4 w-4 animate-spin" />
