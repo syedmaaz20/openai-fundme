@@ -2,9 +2,9 @@ import { supabase } from '@/lib/supabase';
 
 export const uploadImage = async (file: File, bucket: string, userId: string): Promise<string> => {
   try {
-    // Create a unique filename
+    // Create a unique filename with user folder structure
     const fileExt = file.name.split('.').pop();
-    const fileName = `${userId}-${Date.now()}.${fileExt}`;
+    const fileName = `${userId}/${userId}-${Date.now()}.${fileExt}`;
     
     // Upload file to Supabase Storage
     const { data, error } = await supabase.storage
@@ -15,6 +15,7 @@ export const uploadImage = async (file: File, bucket: string, userId: string): P
       });
 
     if (error) {
+      console.error('Storage upload error:', error);
       throw error;
     }
 
