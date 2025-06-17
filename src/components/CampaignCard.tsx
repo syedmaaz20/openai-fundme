@@ -25,11 +25,11 @@ export const CampaignCard = ({ campaign }: { campaign: Campaign }) => {
   return (
     <Link
       to={`/campaigns/${campaign.id}`}
-      className="bg-white rounded-2xl shadow group transition-transform duration-150 hover:scale-105 hover:shadow-lg border border-gray-100 flex flex-col animate-fade-in overflow-hidden cursor-pointer focus:ring-2 focus:ring-blue-400"
+      className="campaign-card bg-white rounded-2xl shadow group border border-gray-100 flex flex-col animate-fade-in overflow-hidden cursor-pointer focus:ring-2 focus:ring-blue-400 h-[420px]"
       aria-label={`Support ${campaign.studentName}'s education campaign`}
       onClick={handleClick}
     >
-      <img src={campaign.photo} alt={campaign.studentName} className="h-48 w-full object-cover" />
+      <img src={campaign.photo} alt={campaign.studentName} className="h-52 w-full object-cover" />
       <div className="flex-1 flex flex-col p-6">
         <h4 className="font-extrabold text-2xl text-gray-800 mb-0.5 leading-tight">{campaign.studentName}</h4>
         <div className="text-blue-600 text-sm font-semibold mb-2">
