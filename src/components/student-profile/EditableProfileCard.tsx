@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Edit3, Check, X, Camera, Share2, Upload } from "lucide-react";
+import { Edit3, Check, X, Camera, Share2, Upload, Play } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useShareCampaign } from "@/hooks/useShareCampaign";
@@ -20,21 +20,58 @@ interface EditableProfileCardProps {
   onUpdate: (updates: Partial<ProfileData>) => void;
 }
 
+// Helper to extract the youtube video id from the url
+const getYoutubeId = (url?: string) => {
+  if (!url) return "";
+  // Support both youtu.be and youtube.com URLs
+  const match =
+    url.match(
+      /(?:youtube\.com.*(?:\/|v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})/
+    ) ||
+    url.match(/[?&]v=([a-zA-Z0-9_-]{11})/);
+  return match ? match[1] : "";
+};
+
+// Helper to validate YouTube URL
+const isValidYouTubeUrl = (url: string) => {
+  if (!url.trim()) return true; // Empty URL is valid (optional)
+  return getYoutubeId(url) !== "";
+};
+
 const EditableProfileCard: React.FC<EditableProfileCardProps> = ({ data, onUpdate }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editData, setEditData] = useState(data);
   const [uploading, setUploading] = useState<'avatar' | 'banner' | null>(null);
+  const [videoUrlInput, setVideoUrlInput] = useState(data.youtubeVideoUrl || '');
+  const [videoUrlError, setVideoUrlError] = useState('');
   const share = useShareCampaign();
   const { user } = useAuth();
 
   const handleSave = () => {
-    onUpdate(editData);
+    // Validate YouTube URL before saving
+    if (videoUrlInput && !isValidYouTubeUrl(videoUrlInput)) {
+      setVideoUrlError('Please enter a valid YouTube URL');
+      return;
+    }
+
+    const updatedData = { ...editData, youtubeVideoUrl: videoUrlInput };
+    onUpdate(updatedData);
     setIsEditing(false);
+    setVideoUrlError('');
   };
 
   const handleCancel = () => {
     setEditData(data);
+    setVideoUrlInput(data.youtubeVideoUrl || '');
+    setVideoUrlError('');
     setIsEditing(false);
+  };
+
+  const handleVideoUrlChange = (value: string) => {
+    setVideoUrlInput(value);
+    if (videoUrlError && (value === '' || isValidYouTubeUrl(value))) {
+      setVideoUrlError('');
+    }
   };
 
   const handleImageUpload = async (file: File, type: 'avatar' | 'banner') => {
@@ -64,17 +101,8 @@ const EditableProfileCard: React.FC<EditableProfileCardProps> = ({ data, onUpdat
     }
   };
 
-  const getYoutubeId = (url?: string) => {
-    if (!url) return "";
-    const match =
-      url.match(
-        /(?:youtube\.com.*(?:\/|v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})/
-      ) ||
-      url.match(/[?&]v=([a-zA-Z0-9_-]{11})/);
-    return match ? match[1] : "";
-  };
-
   const youtubeId = getYoutubeId(editData.youtubeVideoUrl);
+  const hasVideo = !!youtubeId;
 
   return (
     <div className="bg-white p-0 pb-4 rounded-2xl shadow border border-slate-100 overflow-hidden">
@@ -169,12 +197,6 @@ const EditableProfileCard: React.FC<EditableProfileCardProps> = ({ data, onUpdat
                 className="text-xl font-bold"
                 placeholder="Your name"
               />
-              <Input
-                value={editData.youtubeVideoUrl || ''}
-                onChange={(e) => setEditData(prev => ({ ...prev, youtubeVideoUrl: e.target.value }))}
-                placeholder="YouTube video URL (optional)"
-                className="text-sm"
-              />
               <Button size="sm" onClick={handleSave}>
                 <Check size={16} className="mr-1" />
                 Save
@@ -224,16 +246,36 @@ const EditableProfileCard: React.FC<EditableProfileCardProps> = ({ data, onUpdat
         </div>
       </div>
 
-      {/* Video/Story section */}
-      <div className="mt-4 px-2 sm:px-4">
-        <div
-          className="rounded-xl bg-gray-100 shadow-lg overflow-hidden relative flex items-center justify-center transition-all h-52 sm:h-80"
-          style={{
-            minHeight: "208px",
-            background: youtubeId ? "transparent" : "linear-gradient(135deg, #dbeafe 0%, #e0e7ff 100%)",
-          }}
-        >
-          {youtubeId ? (
+      {/* YouTube Video URL Input (only show when editing) */}
+      {isEditing && (
+        <div className="mt-4 px-4">
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-gray-700">
+              YouTube Video URL (optional)
+            </label>
+            <Input
+              value={videoUrlInput}
+              onChange={(e) => handleVideoUrlChange(e.target.value)}
+              placeholder="https://www.youtube.com/watch?v=..."
+              className={videoUrlError ? "border-red-500" : ""}
+            />
+            {videoUrlError && (
+              <p className="text-red-500 text-sm">{videoUrlError}</p>
+            )}
+            {videoUrlInput && isValidYouTubeUrl(videoUrlInput) && (
+              <div className="flex items-center gap-2 text-green-600 text-sm">
+                <Play size={16} />
+                <span>Valid YouTube URL - Video will be displayed below</span>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Video/Story section - only show if video exists */}
+      {hasVideo && (
+        <div className="mt-4 px-2 sm:px-4">
+          <div className="rounded-xl bg-gray-100 shadow-lg overflow-hidden relative flex items-center justify-center transition-all h-52 sm:h-80">
             <iframe
               width="100%"
               height="100%"
@@ -244,15 +286,20 @@ const EditableProfileCard: React.FC<EditableProfileCardProps> = ({ data, onUpdat
               className="absolute top-0 left-0 w-full h-full rounded-xl"
               style={{ border: 0 }}
             ></iframe>
-          ) : (
-            <img
-              src={data.photo}
-              alt="Student profile"
-              className="object-cover h-full w-full"
-            />
-          )}
+          </div>
         </div>
-      </div>
+      )}
+
+      {/* Placeholder when no video and not editing */}
+      {!hasVideo && !isEditing && (
+        <div className="mt-4 px-2 sm:px-4">
+          <div className="rounded-xl bg-gradient-to-br from-blue-50 to-indigo-100 border-2 border-dashed border-blue-200 p-8 text-center">
+            <Play className="mx-auto h-12 w-12 text-blue-400 mb-3" />
+            <p className="text-blue-600 font-medium">No video added yet</p>
+            <p className="text-blue-500 text-sm mt-1">Click Edit to add a YouTube video</p>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
