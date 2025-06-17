@@ -1,14 +1,21 @@
+
 import React, { useState } from "react";
 import { Edit3, Check, X, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import type { FundingBreakdown } from "@/types/campaign";
+
+interface FundingItem {
+  label: string;
+  amount: number;
+  percent: number;
+  color: string;
+}
 
 interface EditableFundingNeedsProps {
   goal: number;
-  breakdown: FundingBreakdown[];
-  onUpdate: (data: { goal?: number; fundingBreakdown?: FundingBreakdown[] }) => void;
+  breakdown: FundingItem[];
+  onUpdate: (data: { goal: number; fundingBreakdown: FundingItem[] }) => void;
 }
 
 const EditableFundingNeeds: React.FC<EditableFundingNeedsProps> = ({ goal, breakdown, onUpdate }) => {
@@ -18,7 +25,7 @@ const EditableFundingNeeds: React.FC<EditableFundingNeedsProps> = ({ goal, break
 
   const colors = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#f97316'];
 
-  const calculatePercentages = (items: FundingBreakdown[], total: number) => {
+  const calculatePercentages = (items: FundingItem[], total: number) => {
     return items.map(item => ({
       ...item,
       percent: total > 0 ? Math.round((item.amount / total) * 100 * 10) / 10 : 0
@@ -50,7 +57,7 @@ const EditableFundingNeeds: React.FC<EditableFundingNeedsProps> = ({ goal, break
   };
 
   const addBreakdownItem = () => {
-    const newItem: FundingBreakdown = {
+    const newItem: FundingItem = {
       label: 'New Item',
       amount: 0,
       percent: 0,
@@ -138,27 +145,23 @@ const EditableFundingNeeds: React.FC<EditableFundingNeedsProps> = ({ goal, break
             <div className="text-gray-500">Funding Goal</div>
           </div>
           
-          {breakdown.length > 0 ? (
-            <ul className="space-y-3">
-              {breakdown.map((item, index) => (
-                <li key={index} className="flex items-center justify-between">
-                  <div className="flex items-center">
-                    <span
-                      className="inline-block w-3 h-3 rounded-full mr-3"
-                      style={{ backgroundColor: item.color }}
-                    />
-                    <span className="text-gray-800 font-medium">{item.label}</span>
-                  </div>
-                  <div className="flex items-end gap-2">
-                    <span className="text-gray-900 font-bold">${item.amount.toLocaleString()}</span>
-                    <span className="text-gray-400 text-sm">({item.percent}%)</span>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="text-gray-500 text-center">No funding breakdown added yet.</p>
-          )}
+          <ul className="space-y-3">
+            {breakdown.map((item, index) => (
+              <li key={index} className="flex items-center justify-between">
+                <div className="flex items-center">
+                  <span
+                    className="inline-block w-3 h-3 rounded-full mr-3"
+                    style={{ backgroundColor: item.color }}
+                  />
+                  <span className="text-gray-800 font-medium">{item.label}</span>
+                </div>
+                <div className="flex items-end gap-2">
+                  <span className="text-gray-900 font-bold">${item.amount.toLocaleString()}</span>
+                  <span className="text-gray-400 text-sm">({item.percent}%)</span>
+                </div>
+              </li>
+            ))}
+          </ul>
         </div>
       )}
     </section>

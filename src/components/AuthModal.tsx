@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -6,7 +7,6 @@ import { Label } from '@/components/ui/label';
 import { useAuth, User } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
-import { Loader2 } from 'lucide-react';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -42,7 +42,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
         await signup(formData.email, formData.password, formData.firstName, formData.lastName, formData.userType);
         toast({
           title: "Account created!",
-          description: "Please check your email to verify your account.",
+          description: "Your account has been created successfully.",
         });
       }
 
@@ -71,21 +71,6 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
-  const resetForm = () => {
-    setFormData({
-      email: '',
-      password: '',
-      firstName: '',
-      lastName: '',
-      userType: 'student'
-    });
-  };
-
-  const toggleMode = () => {
-    setIsLogin(!isLogin);
-    resetForm();
-  };
-
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-md">
@@ -106,7 +91,6 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
                     value={formData.firstName}
                     onChange={(e) => handleInputChange('firstName', e.target.value)}
                     required
-                    disabled={isLoading}
                   />
                 </div>
                 <div>
@@ -116,7 +100,6 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
                     value={formData.lastName}
                     onChange={(e) => handleInputChange('lastName', e.target.value)}
                     required
-                    disabled={isLoading}
                   />
                 </div>
               </div>
@@ -127,9 +110,8 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
                   id="userType"
                   value={formData.userType}
                   onChange={(e) => handleInputChange('userType', e.target.value)}
-                  className="w-full mt-1 p-2 border rounded-md disabled:opacity-50"
+                  className="w-full mt-1 p-2 border rounded-md"
                   required
-                  disabled={isLoading}
                 >
                   <option value="student">Student</option>
                   <option value="donor">Donor</option>
@@ -147,7 +129,6 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
               value={formData.email}
               onChange={(e) => handleInputChange('email', e.target.value)}
               required
-              disabled={isLoading}
             />
           </div>
 
@@ -159,8 +140,6 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
               value={formData.password}
               onChange={(e) => handleInputChange('password', e.target.value)}
               required
-              disabled={isLoading}
-              minLength={6}
             />
           </div>
 
@@ -169,23 +148,15 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
             className="w-full bg-gradient-to-r from-blue-600 to-green-400 hover:scale-105 transition"
             disabled={isLoading}
           >
-            {isLoading ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                {isLogin ? 'Signing in...' : 'Creating account...'}
-              </>
-            ) : (
-              isLogin ? 'Sign In' : 'Create Account'
-            )}
+            {isLoading ? 'Loading...' : (isLogin ? 'Sign In' : 'Create Account')}
           </Button>
 
           <div className="text-center text-sm">
             {isLogin ? "Don't have an account? " : "Already have an account? "}
             <button
               type="button"
-              onClick={toggleMode}
+              onClick={() => setIsLogin(!isLogin)}
               className="text-blue-600 hover:underline font-semibold"
-              disabled={isLoading}
             >
               {isLogin ? 'Sign Up' : 'Sign In'}
             </button>

@@ -1,9 +1,9 @@
+
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import AuthModal from "@/components/AuthModal";
-import { LogOut, User, Loader2 } from "lucide-react";
-import { useSessionPersistence } from "@/hooks/useSessionPersistence";
+import { LogOut, User } from "lucide-react";
 
 const navLinks = [
   { label: "Home", href: "/" },
@@ -15,27 +15,8 @@ const navLinks = [
 const TopNav = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { user, logout, isAuthenticated, loading, refreshSession } = useAuth();
+  const { user, logout, isAuthenticated } = useAuth();
   const [showAuthModal, setShowAuthModal] = useState(false);
-  const [isLoggingOut, setIsLoggingOut] = useState(false);
-  const [initialLoadComplete, setInitialLoadComplete] = useState(false);
-
-  // Use session persistence hook
-  useSessionPersistence({
-    onSessionRefresh: () => {
-      console.log('Session refreshed successfully');
-    },
-    onSessionExpired: () => {
-      console.log('Session expired, user will be logged out');
-    }
-  });
-
-  // Track initial load completion
-  useEffect(() => {
-    if (!loading && !initialLoadComplete) {
-      setInitialLoadComplete(true);
-    }
-  }, [loading, initialLoadComplete]);
 
   const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
     e.preventDefault();
@@ -49,81 +30,9 @@ const TopNav = () => {
     navigate('/student-profile');
   };
 
-  const handleLogout = async () => {
-    setIsLoggingOut(true);
-    try {
-      await logout();
-      navigate('/');
-    } catch (error) {
-      console.error('Logout error:', error);
-    } finally {
-      setIsLoggingOut(false);
-    }
-  };
-
-  const renderAuthSection = () => {
-    // Only show loading spinner during initial load, not on subsequent refreshes
-    if (loading && !initialLoadComplete) {
-      return (
-        <li className="flex items-center">
-          <Loader2 className="h-4 w-4 animate-spin" />
-        </li>
-      );
-    }
-
-    if (isAuthenticated && user) {
-      return (
-        <>
-          {user.userType === 'student' && (
-            <li>
-              <button
-                onClick={handleStartCampaign}
-                className="ml-3 py-2 px-4 rounded-lg bg-gradient-to-r from-blue-600 to-green-400 text-white font-semibold shadow hover:scale-105 transition"
-              >
-                My Campaign
-              </button>
-            </li>
-          )}
-          <li className="flex items-center gap-2">
-            <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-gray-100">
-              {user.avatar ? (
-                <img
-                  src={user.avatar}
-                  alt={user.firstName}
-                  className="w-6 h-6 rounded-full object-cover"
-                />
-              ) : (
-                <User size={16} />
-              )}
-              <span className="text-sm font-medium">{user.firstName}</span>
-              <button
-                onClick={handleLogout}
-                className="text-gray-500 hover:text-gray-700 ml-1"
-                disabled={isLoggingOut}
-                title="Sign out"
-              >
-                {isLoggingOut ? (
-                  <Loader2 size={16} className="animate-spin" />
-                ) : (
-                  <LogOut size={16} />
-                )}
-              </button>
-            </div>
-          </li>
-        </>
-      );
-    }
-
-    return (
-      <li>
-        <button
-          onClick={() => setShowAuthModal(true)}
-          className="ml-3 py-2 px-4 rounded-lg bg-gradient-to-r from-blue-600 to-green-400 text-white font-semibold shadow hover:scale-105 transition"
-        >
-          Sign In
-        </button>
-      </li>
-    );
+  const handleLogout = () => {
+    logout();
+    navigate('/');
   };
 
   return (
@@ -163,7 +72,49 @@ const TopNav = () => {
               </li>
             ))}
             
-            {renderAuthSection()}
+            {isAuthenticated ? (
+              <>
+                {user?.userType === 'student' && (
+                  <li>
+                    <button
+                      onClick={handleStartCampaign}
+                      className="ml-3 py-2 px-4 rounded-lg bg-gradient-to-r from-blue-600 to-green-400 text-white font-semibold shadow hover:scale-105 transition"
+                    >
+                      My Campaign
+                    </button>
+                  </li>
+                )}
+                <li className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-gray-100">
+                    {user?.avatar ? (
+                      <img
+                        src={user.avatar}
+                        alt={user.firstName}
+                        className="w-6 h-6 rounded-full object-cover"
+                      />
+                    ) : (
+                      <User size={16} />
+                    )}
+                    <span className="text-sm font-medium">{user?.firstName}</span>
+                    <button
+                      onClick={handleLogout}
+                      className="text-gray-500 hover:text-gray-700 ml-1"
+                    >
+                      <LogOut size={16} />
+                    </button>
+                  </div>
+                </li>
+              </>
+            ) : (
+              <li>
+                <button
+                  onClick={() => setShowAuthModal(true)}
+                  className="ml-3 py-2 px-4 rounded-lg bg-gradient-to-r from-blue-600 to-green-400 text-white font-semibold shadow hover:scale-105 transition"
+                >
+                  Sign In
+                </button>
+              </li>
+            )}
           </ul>
           
           {/* Mobile: Hamburger button */}

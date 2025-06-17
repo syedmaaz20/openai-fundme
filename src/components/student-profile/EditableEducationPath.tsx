@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { Edit3, Check, X, Link as LinkIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -95,24 +96,22 @@ const EditableEducationPath: React.FC<EditableEducationPathProps> = ({ data, onU
                 {item.hasLink ? (
                   <span className="flex items-center gap-1">
                     {item.value}
-                    {editData.institutionUrl && (
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <a
-                            href={editData.institutionUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="ml-1 text-blue-600 hover:text-blue-800"
-                            aria-label="Visit Institution Website"
-                          >
-                            <LinkIcon size={16} />
-                          </a>
-                        </TooltipTrigger>
-                        <TooltipContent side="top">
-                          Visit Institution Website
-                        </TooltipContent>
-                      </Tooltip>
-                    )}
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <a
+                          href={editData.institutionUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="ml-1 text-blue-600 hover:text-blue-800"
+                          aria-label="Visit Institution Website"
+                        >
+                          <LinkIcon size={16} />
+                        </a>
+                      </TooltipTrigger>
+                      <TooltipContent side="top">
+                        Visit Institution Website
+                      </TooltipContent>
+                    </Tooltip>
                   </span>
                 ) : (
                   item.value
