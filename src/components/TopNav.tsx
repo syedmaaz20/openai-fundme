@@ -81,21 +81,21 @@ const TopNav = () => {
                   <a
                     href={link.href}
                     onClick={e => handleNavClick(e, link.href)}
-                    className="relative transition-colors hover:text-blue-600"
+                    className="relative transition-colors hover:text-blue-600 py-2 px-3 rounded-lg hover:bg-blue-50"
                   >
                     {link.label}
                   </a>
                 ) : link.href.startsWith("/") ? (
                   <Link
                     to={link.href}
-                    className="relative transition-colors hover:text-blue-600"
+                    className="relative transition-colors hover:text-blue-600 py-2 px-3 rounded-lg hover:bg-blue-50"
                   >
                     {link.label}
                   </Link>
                 ) : (
                   <a
                     href={link.href}
-                    className="relative transition-colors hover:text-blue-600"
+                    className="relative transition-colors hover:text-blue-600 py-2 px-3 rounded-lg hover:bg-blue-50"
                   >
                     {link.label}
                   </a>
@@ -118,19 +118,11 @@ const TopNav = () => {
                 <li className="flex items-center">
                   <DropdownMenu>
                     <DropdownMenuTrigger className="flex items-center gap-2 px-3 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors">
-                      {user?.avatar ? (
-                        <img
-                          src={user.avatar}
-                          alt={user.firstName}
-                          className="w-6 h-6 rounded-full object-cover"
-                        />
-                      ) : (
-                        <User size={16} />
-                      )}
+                      <User size={16} />
                       <span className="text-sm font-medium">{user?.firstName}</span>
                       <ChevronDown size={14} />
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-48 bg-white border shadow-lg">
+                    <DropdownMenuContent align="end" className="w-48 bg-white border shadow-lg z-50">
                       <DropdownMenuItem onClick={() => navigate(getDashboardRoute())}>
                         <LayoutDashboard size={16} className="mr-2" />
                         Dashboard

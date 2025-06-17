@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Edit3, Check, X, Camera, Heart, Users, DollarSign } from "lucide-react";
+import { Edit3, Check, X, Camera, Heart, Users, DollarSign, Eye, Settings, Share2 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 
 const DonorProfile = () => {
@@ -42,6 +42,28 @@ const DonorProfile = () => {
   const handleCancel = () => {
     setIsEditing(false);
     // Reset to original data if needed
+  };
+
+  const handleViewDonations = () => {
+    toast({
+      title: "Donation History",
+      description: "View detailed donation history feature coming soon",
+    });
+  };
+
+  const handleShareProfile = () => {
+    navigator.clipboard.writeText(window.location.href);
+    toast({
+      title: "Profile Link Copied",
+      description: "Your profile link has been copied to clipboard",
+    });
+  };
+
+  const handleSettings = () => {
+    toast({
+      title: "Profile Settings",
+      description: "Profile settings page coming soon",
+    });
   };
 
   return (
@@ -124,6 +146,22 @@ const DonorProfile = () => {
               </div>
             </CardHeader>
           </Card>
+
+          {/* Quick Actions */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <Button variant="outline" onClick={handleViewDonations} className="h-12">
+              <Eye size={16} className="mr-2" />
+              View Donations
+            </Button>
+            <Button variant="outline" onClick={handleShareProfile} className="h-12">
+              <Share2 size={16} className="mr-2" />
+              Share Profile
+            </Button>
+            <Button variant="outline" onClick={handleSettings} className="h-12">
+              <Settings size={16} className="mr-2" />
+              Settings
+            </Button>
+          </div>
 
           {/* About Section */}
           <Card>

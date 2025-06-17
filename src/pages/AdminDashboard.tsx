@@ -6,15 +6,33 @@ import { Navigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { CheckCircle, XCircle, Clock, Eye, Users, DollarSign, TrendingUp, AlertTriangle } from "lucide-react";
+import { Eye, FileText, Check, X, Clock, User, DollarSign } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+
+interface StudentApplication {
+  id: string;
+  studentName: string;
+  email: string;
+  program: string;
+  institution: string;
+  goal: number;
+  status: 'pending' | 'approved' | 'rejected';
+  submittedAt: string;
+  documents: string[];
+  photo: string;
+  story: string;
+}
 
 const AdminDashboard = () => {
   const { user, isAuthenticated } = useAuth();
-  
-  // Mock data for student profiles pending verification
-  const [pendingProfiles] = useState([
+  const [selectedStudent, setSelectedStudent] = useState<StudentApplication | null>(null);
+  const [applications, setApplications] = useState<StudentApplication[]>([
     {
       id: '1',
       studentName: 'Maria Rodriguez',
@@ -22,35 +40,24 @@ const AdminDashboard = () => {
       program: 'Social Work',
       institution: 'UCLA',
       goal: 15000,
+      status: 'pending',
       submittedAt: '2024-01-15',
-      photo: 'https://images.unsplash.com/photo-1494790108755-2616b612b407?auto=format&fit=crop&w=150&h=150&q=80',
-      story: 'First-generation college student from a low-income background...',
-      status: 'pending'
+      documents: ['Fee Receipt', 'Student ID', 'Admission Letter'],
+      photo: 'https://randomuser.me/api/portraits/women/75.jpg',
+      story: 'I am a first-generation college student studying Social Work at UCLA...'
     },
     {
       id: '2',
-      studentName: 'James Chen',
-      email: 'james@student.com',
-      program: 'Computer Science',
-      institution: 'Stanford University',
-      goal: 20000,
-      submittedAt: '2024-01-14',
-      photo: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=150&h=150&q=80',
-      story: 'Passionate about technology and social impact...',
-      status: 'pending'
-    }
-  ]);
-
-  const [verifiedProfiles] = useState([
-    {
-      id: '3',
-      studentName: 'Sarah Johnson',
-      program: 'Nursing',
-      institution: 'Johns Hopkins',
+      studentName: 'Juan Rodriguez',
+      email: 'juan@student.com',
+      program: 'Mechanical Engineering',
+      institution: 'CalTech',
       goal: 18000,
-      raised: 5400,
-      verifiedAt: '2024-01-10',
-      status: 'approved'
+      status: 'pending',
+      submittedAt: '2024-01-14',
+      documents: ['Fee Receipt', 'Student ID', 'Transcript'],
+      photo: 'https://randomuser.me/api/portraits/men/85.jpg',
+      story: 'Coming from a low-income family, I have always dreamed of becoming an engineer...'
     }
   ]);
 
@@ -59,189 +66,219 @@ const AdminDashboard = () => {
     return <Navigate to="/" replace />;
   }
 
-  const handleVerifyProfile = (profileId: string, action: 'approve' | 'reject') => {
-    toast({
-      title: action === 'approve' ? "Profile Approved" : "Profile Rejected",
-      description: `Student profile has been ${action}d and ${action === 'approve' ? 'is now live' : 'sent back for revision'}.`,
-    });
+  const handleViewDetails = (student: StudentApplication) => {
+    setSelectedStudent(student);
   };
 
-  const adminStats = {
-    totalStudents: 45,
-    pendingReviews: pendingProfiles.length,
-    totalRaised: 125000,
-    activeAampaigns: 28
+  const handleApprove = (studentId: string) => {
+    setApplications(prev => 
+      prev.map(app => 
+        app.id === studentId 
+          ? { ...app, status: 'approved' as const }
+          : app
+      )
+    );
+    toast({
+      title: "Student Approved",
+      description: "The student's campaign has been approved and is now live.",
+    });
+    setSelectedStudent(null);
+  };
+
+  const handleReject = (studentId: string) => {
+    setApplications(prev => 
+      prev.map(app => 
+        app.id === studentId 
+          ? { ...app, status: 'rejected' as const }
+          : app
+      )
+    );
+    toast({
+      title: "Student Rejected",
+      description: "The student's application has been rejected.",
+      variant: "destructive",
+    });
+    setSelectedStudent(null);
+  };
+
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case 'pending':
+        return <Badge variant="outline" className="text-yellow-600 border-yellow-300"><Clock size={12} className="mr-1" />Pending</Badge>;
+      case 'approved':
+        return <Badge variant="outline" className="text-green-600 border-green-300"><Check size={12} className="mr-1" />Approved</Badge>;
+      case 'rejected':
+        return <Badge variant="outline" className="text-red-600 border-red-300"><X size={12} className="mr-1" />Rejected</Badge>;
+      default:
+        return null;
+    }
+  };
+
+  const stats = {
+    totalApplications: applications.length,
+    pendingApplications: applications.filter(app => app.status === 'pending').length,
+    approvedApplications: applications.filter(app => app.status === 'approved').length,
+    rejectedApplications: applications.filter(app => app.status === 'rejected').length,
   };
 
   return (
     <div className="bg-gradient-to-b from-blue-50 via-slate-50 to-white min-h-screen flex flex-col">
       <TopNav />
-      <main className="flex-1 w-full max-w-7xl mx-auto pt-8 px-4 lg:px-0">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Admin Dashboard
-          </h1>
-          <p className="text-gray-600">Manage student verifications and platform oversight</p>
-        </div>
+      <main className="flex-1 w-full flex flex-col items-center pt-6 px-2 sm:px-4 lg:px-0">
+        <div className="w-full max-w-6xl mx-auto space-y-6 mb-12">
+          <h1 className="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
 
-        {/* Admin Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Students</CardTitle>
-              <Users className="h-4 w-4 text-blue-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{adminStats.totalStudents}</div>
-              <p className="text-xs text-muted-foreground">Registered students</p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Pending Reviews</CardTitle>
-              <AlertTriangle className="h-4 w-4 text-orange-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-orange-600">{adminStats.pendingReviews}</div>
-              <p className="text-xs text-muted-foreground">Awaiting verification</p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Raised</CardTitle>
-              <DollarSign className="h-4 w-4 text-green-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-green-600">
-                ${adminStats.totalRaised.toLocaleString()}
-              </div>
-              <p className="text-xs text-muted-foreground">Platform-wide</p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Active Campaigns</CardTitle>
-              <TrendingUp className="h-4 w-4 text-purple-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{adminStats.activeAampaigns}</div>
-              <p className="text-xs text-muted-foreground">Currently fundraising</p>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Main Content */}
-        <Tabs defaultValue="pending" className="space-y-6">
-          <TabsList>
-            <TabsTrigger value="pending">
-              Pending Reviews ({pendingProfiles.length})
-            </TabsTrigger>
-            <TabsTrigger value="verified">
-              Verified Profiles ({verifiedProfiles.length})
-            </TabsTrigger>
-            <TabsTrigger value="analytics">
-              Analytics
-            </TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="pending" className="space-y-6">
-            {pendingProfiles.map((profile) => (
-              <Card key={profile.id}>
-                <CardHeader>
-                  <div className="flex justify-between items-start">
-                    <div className="flex items-center gap-4">
-                      <img
-                        src={profile.photo}
-                        alt={profile.studentName}
-                        className="w-16 h-16 rounded-full object-cover"
-                      />
-                      <div>
-                        <CardTitle className="text-lg">{profile.studentName}</CardTitle>
-                        <p className="text-gray-600">{profile.program} at {profile.institution}</p>
-                        <p className="text-sm text-gray-500">Goal: ${profile.goal.toLocaleString()}</p>
-                        <p className="text-xs text-gray-400">Submitted: {profile.submittedAt}</p>
-                      </div>
-                    </div>
-                    <Badge variant="outline" className="border-orange-200 text-orange-700">
-                      <Clock size={12} className="mr-1" />
-                      Pending
-                    </Badge>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="mb-4">
-                    <h4 className="font-medium mb-2">Student Story:</h4>
-                    <p className="text-gray-700 text-sm">{profile.story}</p>
-                  </div>
-                  <div className="flex gap-3">
-                    <Button
-                      onClick={() => handleVerifyProfile(profile.id, 'approve')}
-                      className="bg-green-600 hover:bg-green-700"
-                    >
-                      <CheckCircle size={16} className="mr-2" />
-                      Approve
-                    </Button>
-                    <Button
-                      variant="outline"
-                      onClick={() => handleVerifyProfile(profile.id, 'reject')}
-                      className="border-red-200 text-red-700 hover:bg-red-50"
-                    >
-                      <XCircle size={16} className="mr-2" />
-                      Reject
-                    </Button>
-                    <Button variant="outline">
-                      <Eye size={16} className="mr-2" />
-                      View Details
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </TabsContent>
-
-          <TabsContent value="verified" className="space-y-6">
-            {verifiedProfiles.map((profile) => (
-              <Card key={profile.id}>
-                <CardContent className="p-6">
-                  <div className="flex justify-between items-center">
-                    <div>
-                      <h3 className="font-medium">{profile.studentName}</h3>
-                      <p className="text-gray-600 text-sm">{profile.program} at {profile.institution}</p>
-                      <p className="text-xs text-gray-500">Verified: {profile.verifiedAt}</p>
-                    </div>
-                    <div className="text-right">
-                      <div className="text-lg font-bold text-green-600">
-                        ${profile.raised?.toLocaleString()} / ${profile.goal.toLocaleString()}
-                      </div>
-                      <Badge className="bg-green-100 text-green-800">
-                        <CheckCircle size={12} className="mr-1" />
-                        Verified
-                      </Badge>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </TabsContent>
-
-          <TabsContent value="analytics">
+          {/* Stats Overview */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <Card>
-              <CardHeader>
-                <CardTitle>Platform Analytics</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-center py-12">
-                  <TrendingUp size={48} className="mx-auto text-gray-400 mb-4" />
-                  <p className="text-gray-600">Analytics dashboard coming soon...</p>
-                </div>
+              <CardContent className="p-4 text-center">
+                <FileText className="h-6 w-6 text-blue-600 mx-auto mb-2" />
+                <div className="text-xl font-bold">{stats.totalApplications}</div>
+                <p className="text-sm text-gray-600">Total Applications</p>
               </CardContent>
             </Card>
-          </TabsContent>
-        </Tabs>
+            <Card>
+              <CardContent className="p-4 text-center">
+                <Clock className="h-6 w-6 text-yellow-600 mx-auto mb-2" />
+                <div className="text-xl font-bold">{stats.pendingApplications}</div>
+                <p className="text-sm text-gray-600">Pending Review</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="p-4 text-center">
+                <Check className="h-6 w-6 text-green-600 mx-auto mb-2" />
+                <div className="text-xl font-bold">{stats.approvedApplications}</div>
+                <p className="text-sm text-gray-600">Approved</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="p-4 text-center">
+                <X className="h-6 w-6 text-red-600 mx-auto mb-2" />
+                <div className="text-xl font-bold">{stats.rejectedApplications}</div>
+                <p className="text-sm text-gray-600">Rejected</p>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Applications List */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Student Applications</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {applications.map((application) => (
+                  <div key={application.id} className="flex items-center justify-between p-4 border rounded-lg">
+                    <div className="flex items-center gap-4">
+                      <img
+                        src={application.photo}
+                        alt={application.studentName}
+                        className="w-12 h-12 rounded-full object-cover"
+                      />
+                      <div>
+                        <h3 className="font-semibold">{application.studentName}</h3>
+                        <p className="text-sm text-gray-600">{application.program} at {application.institution}</p>
+                        <div className="flex items-center gap-2 mt-1">
+                          <DollarSign size={14} className="text-green-500" />
+                          <span className="text-sm">${application.goal.toLocaleString()} goal</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      {getStatusBadge(application.status)}
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleViewDetails(application)}
+                      >
+                        <Eye size={14} className="mr-1" />
+                        View Details
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       </main>
+
+      {/* Student Details Modal */}
+      <Dialog open={!!selectedStudent} onOpenChange={() => setSelectedStudent(null)}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Student Application Details</DialogTitle>
+          </DialogHeader>
+          
+          {selectedStudent && (
+            <div className="space-y-6">
+              {/* Student Info */}
+              <div className="flex items-start gap-4">
+                <img
+                  src={selectedStudent.photo}
+                  alt={selectedStudent.studentName}
+                  className="w-20 h-20 rounded-full object-cover"
+                />
+                <div className="flex-1">
+                  <h2 className="text-xl font-bold">{selectedStudent.studentName}</h2>
+                  <p className="text-gray-600">{selectedStudent.email}</p>
+                  <p className="text-sm text-gray-500">{selectedStudent.program} at {selectedStudent.institution}</p>
+                  <div className="flex items-center gap-2 mt-2">
+                    <DollarSign size={16} className="text-green-500" />
+                    <span className="font-semibold">${selectedStudent.goal.toLocaleString()} funding goal</span>
+                  </div>
+                </div>
+                <div className="text-right">
+                  {getStatusBadge(selectedStudent.status)}
+                  <p className="text-xs text-gray-500 mt-1">
+                    Submitted: {new Date(selectedStudent.submittedAt).toLocaleDateString()}
+                  </p>
+                </div>
+              </div>
+
+              {/* Student Story */}
+              <div>
+                <h3 className="font-semibold mb-2">Student's Story</h3>
+                <p className="text-gray-700 bg-gray-50 p-4 rounded-lg">{selectedStudent.story}</p>
+              </div>
+
+              {/* Supporting Documents */}
+              <div>
+                <h3 className="font-semibold mb-2">Supporting Documents</h3>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                  {selectedStudent.documents.map((doc, index) => (
+                    <div key={index} className="flex items-center gap-2 p-3 border rounded-lg">
+                      <FileText size={16} className="text-blue-600" />
+                      <span className="text-sm">{doc}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              {selectedStudent.status === 'pending' && (
+                <div className="flex gap-3 pt-4 border-t">
+                  <Button
+                    onClick={() => handleApprove(selectedStudent.id)}
+                    className="flex-1 bg-green-600 hover:bg-green-700"
+                  >
+                    <Check size={16} className="mr-2" />
+                    Approve Campaign
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    onClick={() => handleReject(selectedStudent.id)}
+                    className="flex-1"
+                  >
+                    <X size={16} className="mr-2" />
+                    Reject Application
+                  </Button>
+                </div>
+              )}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

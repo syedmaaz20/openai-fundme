@@ -16,7 +16,7 @@ const Index = () => {
         </div>
         <section className="w-full max-w-6xl mx-auto mt-12 mb-8" id="campaigns">
           <h2 className="text-2xl font-bold text-gray-900 mb-6 text-left">Active Campaigns</h2>
-          <CampaignList />
+          <CampaignList showAll={false} />
         </section>
       </main>
       <Footer />

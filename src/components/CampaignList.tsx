@@ -1,5 +1,8 @@
 
 import { CampaignCard } from "./CampaignCard";
+import { Button } from "@/components/ui/button";
+import { Link } from "react-router-dom";
+import { ArrowRight } from "lucide-react";
 
 // dummy campaign data with short shareCode and videoUrl
 export const campaigns = [
@@ -32,14 +35,34 @@ export const campaigns = [
   }
 ];
 
-// CampaignList component renders all campaigns using CampaignCard
-const CampaignList = () => (
-  <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
-    {campaigns.map(campaign => (
-      <CampaignCard key={campaign.id} campaign={campaign} />
-    ))}
-  </div>
-);
+// CampaignList component with scroll and view more
+const CampaignList = ({ showAll = false }: { showAll?: boolean }) => {
+  const maxHeight = showAll ? 'auto' : '500px';
+  
+  return (
+    <div className="space-y-6">
+      <div 
+        className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6 overflow-hidden"
+        style={{ maxHeight: showAll ? 'auto' : maxHeight }}
+      >
+        {campaigns.map(campaign => (
+          <CampaignCard key={campaign.id} campaign={campaign} />
+        ))}
+      </div>
+      
+      {!showAll && (
+        <div className="flex justify-center mt-8">
+          <Button asChild className="bg-gradient-to-r from-blue-600 to-green-400 hover:scale-105 transition-transform">
+            <Link to="/campaigns" className="flex items-center gap-2">
+              View All Campaigns
+              <ArrowRight size={16} />
+            </Link>
+          </Button>
+        </div>
+      )}
+    </div>
+  );
+};
 
 export default CampaignList;
 export { CampaignCard };

@@ -1,8 +1,9 @@
 
 import React from "react";
 import { Button } from "@/components/ui/button";
-import { Eye, Share2, Settings, TrendingUp, Users, DollarSign } from "lucide-react";
+import { Eye, Share2, Settings, TrendingUp, Users, DollarSign, Upload, FileText } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
+import { useNavigate } from "react-router-dom";
 
 interface ProfileSidebarProps {
   profileData: any;
@@ -10,6 +11,8 @@ interface ProfileSidebarProps {
 }
 
 const ProfileSidebar: React.FC<ProfileSidebarProps> = ({ profileData, onUpdate }) => {
+  const navigate = useNavigate();
+
   const handlePublishCampaign = () => {
     onUpdate({ campaignPublished: !profileData.campaignPublished });
     toast({
@@ -21,16 +24,23 @@ const ProfileSidebar: React.FC<ProfileSidebarProps> = ({ profileData, onUpdate }
   };
 
   const handlePreview = () => {
-    toast({
-      title: "Preview Mode",
-      description: "This is how donors will see your campaign",
-    });
+    // Navigate to campaign detail page to show preview
+    navigate(`/campaigns/${profileData.shareCode}`, { state: { preview: true } });
   };
 
   const handleShare = () => {
+    const shareUrl = `${window.location.origin}/c/${profileData.shareCode}`;
+    navigator.clipboard.writeText(shareUrl);
     toast({
       title: "Share Link Copied!",
-      description: `edufund.com/c/${profileData.shareCode}`,
+      description: shareUrl,
+    });
+  };
+
+  const handleSupportingDocs = () => {
+    toast({
+      title: "Upload Documents",
+      description: "Supporting documents upload feature coming soon",
     });
   };
 
@@ -54,6 +64,15 @@ const ProfileSidebar: React.FC<ProfileSidebarProps> = ({ profileData, onUpdate }
               }
             </p>
           </div>
+
+          <Button 
+            onClick={handleSupportingDocs}
+            variant="outline" 
+            className="w-full mb-2"
+          >
+            <Upload size={16} className="mr-2" />
+            Supporting Documents
+          </Button>
 
           <Button 
             onClick={handlePublishCampaign} 
@@ -118,23 +137,33 @@ const ProfileSidebar: React.FC<ProfileSidebarProps> = ({ profileData, onUpdate }
         </div>
       </div>
 
-      {/* Campaign Preview */}
+      {/* Donor Preview */}
       <div className="bg-white rounded-xl shadow border border-slate-100 p-6">
         <h3 className="font-semibold text-gray-900 mb-4">Donor Preview</h3>
-        <div className="text-center space-y-3">
+        <div className="border rounded-lg p-4 bg-white shadow-sm">
           <img
             src={profileData.photo}
             alt={profileData.studentName}
-            className="w-16 h-16 rounded-full mx-auto object-cover"
+            className="h-32 w-full object-cover rounded-lg mb-3"
           />
-          <div>
-            <div className="font-medium text-sm">{profileData.studentName}</div>
-            <div className="text-xs text-gray-500">{profileData.program}</div>
+          <h4 className="font-bold text-lg text-gray-800 mb-1">{profileData.studentName}</h4>
+          <div className="text-blue-600 text-sm font-semibold mb-2">
+            Future Social Worker
           </div>
-          <div className="bg-gray-50 p-3 rounded-lg">
-            <div className="text-lg font-bold text-blue-600">${profileData.goal.toLocaleString()}</div>
-            <div className="text-xs text-gray-500">Goal</div>
+          <p className="text-gray-600 text-sm mb-3 line-clamp-2">
+            I'm fundraising for my final year at UCLA. Your support will help pay my tuition...
+          </p>
+          <div className="flex gap-2 items-center text-xs mb-2">
+            <DollarSign className="text-green-500" size={16} />
+            <span className="font-semibold text-gray-800">$3,450</span>
+            <span className="text-gray-500">/ ${profileData.goal.toLocaleString()}</span>
           </div>
+          <div className="h-2 bg-gray-200 rounded mb-2">
+            <div className="h-full w-1/4 bg-gradient-to-r from-blue-500 to-green-400 rounded" />
+          </div>
+          <Button onClick={handlePreview} size="sm" className="w-full text-xs">
+            Preview Full Campaign
+          </Button>
         </div>
       </div>
     </div>

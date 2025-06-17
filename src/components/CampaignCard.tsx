@@ -1,3 +1,4 @@
+
 import { ArrowUp, DollarSign } from "lucide-react";
 import { Link } from "react-router-dom";
 
@@ -28,26 +29,26 @@ export const CampaignCard = ({ campaign }: { campaign: Campaign }) => {
       aria-label={`Support ${campaign.studentName}'s education campaign`}
       onClick={handleClick}
     >
-      <img src={campaign.photo} alt={campaign.studentName} className="h-40 w-full object-cover" />
-      <div className="flex-1 flex flex-col p-5">
+      <img src={campaign.photo} alt={campaign.studentName} className="h-48 w-full object-cover" />
+      <div className="flex-1 flex flex-col p-6">
         <h4 className="font-extrabold text-2xl text-gray-800 mb-0.5 leading-tight">{campaign.studentName}</h4>
-        <div className="text-blue-600 text-sm font-semibold mb-1">
+        <div className="text-blue-600 text-sm font-semibold mb-2">
           {campaign.aspirationalTitle}
         </div>
-        <p className="text-gray-600 text-sm mb-3 line-clamp-2">{campaign.shortDescription}</p>
+        <p className="text-gray-600 text-sm mb-4 line-clamp-3 flex-grow">{campaign.shortDescription}</p>
         <div className="mt-auto">
-          <div className="flex gap-2 items-center text-xs mb-1">
+          <div className="flex gap-2 items-center text-xs mb-2">
             <DollarSign className="text-green-500 mr-1" size={18} />
             <span className="font-semibold text-gray-800">${campaign.raised.toLocaleString()}</span>
             <span className="text-gray-500">&nbsp;/ ${campaign.goal.toLocaleString()}</span>
           </div>
-          <div className="h-2 bg-gray-200 rounded mt-1 mb-2 overflow-hidden">
+          <div className="h-3 bg-gray-200 rounded mt-1 mb-3 overflow-hidden">
             <div
               className={`h-full rounded bg-gradient-to-r from-blue-500 to-green-400 transition-all`}
               style={{ width: `${percent}%` }}
             />
           </div>
-          <div className="flex justify-between items-center text-[11px]">
+          <div className="flex justify-between items-center text-sm">
             <span className="text-green-600 font-medium">
               {percent === 100 ? (
                 <>
