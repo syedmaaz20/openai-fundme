@@ -3,7 +3,14 @@ import { Link, useNavigate, useLocation } from "react-router-dom";
 import React, { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import AuthModal from "@/components/AuthModal";
-import { LogOut, User } from "lucide-react";
+import { LogOut, User, Settings, LayoutDashboard, UserCircle, ChevronDown } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const navLinks = [
   { label: "Home", href: "/" },
@@ -33,6 +40,30 @@ const TopNav = () => {
   const handleLogout = () => {
     logout();
     navigate('/');
+  };
+
+  const getDashboardRoute = () => {
+    switch (user?.userType) {
+      case 'student':
+        return '/student-dashboard';
+      case 'donor':
+        return '/donor-dashboard';
+      case 'admin':
+        return '/admin-dashboard';
+      default:
+        return '/';
+    }
+  };
+
+  const getProfileRoute = () => {
+    switch (user?.userType) {
+      case 'student':
+        return '/student-profile';
+      case 'donor':
+        return '/donor-profile';
+      default:
+        return '/';
+    }
   };
 
   return (
@@ -84,25 +115,41 @@ const TopNav = () => {
                     </button>
                   </li>
                 )}
-                <li className="flex items-center gap-2">
-                  <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-gray-100">
-                    {user?.avatar ? (
-                      <img
-                        src={user.avatar}
-                        alt={user.firstName}
-                        className="w-6 h-6 rounded-full object-cover"
-                      />
-                    ) : (
-                      <User size={16} />
-                    )}
-                    <span className="text-sm font-medium">{user?.firstName}</span>
-                    <button
-                      onClick={handleLogout}
-                      className="text-gray-500 hover:text-gray-700 ml-1"
-                    >
-                      <LogOut size={16} />
-                    </button>
-                  </div>
+                <li className="flex items-center">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger className="flex items-center gap-2 px-3 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors">
+                      {user?.avatar ? (
+                        <img
+                          src={user.avatar}
+                          alt={user.firstName}
+                          className="w-6 h-6 rounded-full object-cover"
+                        />
+                      ) : (
+                        <User size={16} />
+                      )}
+                      <span className="text-sm font-medium">{user?.firstName}</span>
+                      <ChevronDown size={14} />
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-48 bg-white border shadow-lg">
+                      <DropdownMenuItem onClick={() => navigate(getDashboardRoute())}>
+                        <LayoutDashboard size={16} className="mr-2" />
+                        Dashboard
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => navigate(getProfileRoute())}>
+                        <UserCircle size={16} className="mr-2" />
+                        Profile
+                      </DropdownMenuItem>
+                      <DropdownMenuItem>
+                        <Settings size={16} className="mr-2" />
+                        Settings
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem onClick={handleLogout}>
+                        <LogOut size={16} className="mr-2" />
+                        Logout
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </li>
               </>
             ) : (

@@ -14,6 +14,8 @@ import HowItWorks from "./pages/HowItWorks";
 import StudentProfile from "./pages/StudentProfile";
 import StudentDashboard from "./pages/StudentDashboard";
 import DonorDashboard from "./pages/DonorDashboard";
+import DonorProfile from "./pages/DonorProfile";
+import AdminDashboard from "./pages/AdminDashboard";
 import { findCampaignByShareCode } from "@/utils/campaignShortUrl";
 import React from "react";
 
@@ -44,6 +46,8 @@ const App = () => (
             <Route path="/student-profile" element={<StudentProfile />} />
             <Route path="/student-dashboard" element={<StudentDashboard />} />
             <Route path="/donor-dashboard" element={<DonorDashboard />} />
+            <Route path="/donor-profile" element={<DonorProfile />} />
+            <Route path="/admin-dashboard" element={<AdminDashboard />} />
             {/* NEW: Share-friendly short campaign route */}
             <Route path="/c/:shareCode" element={<ShortCampaignDetail />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

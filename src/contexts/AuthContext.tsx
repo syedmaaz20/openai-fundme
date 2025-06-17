@@ -37,6 +37,14 @@ const mockUsers: User[] = [
     lastName: 'Smith',
     userType: 'donor',
     avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=150&h=150&q=80'
+  },
+  {
+    id: '3',
+    email: 'admin@edufund.com',
+    firstName: 'Admin',
+    lastName: 'User',
+    userType: 'admin',
+    avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=150&h=150&q=80'
   }
 ];
 
