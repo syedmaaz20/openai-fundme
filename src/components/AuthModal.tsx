@@ -24,7 +24,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
     firstName: '',
     lastName: '',
     username: '',
-    userType: 'student' as User['userType']
+    userType: '' as User['userType'] | ''
   });
 
   const { login, signup } = useAuth();
@@ -42,7 +42,17 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
           description: "You have successfully logged in.",
         });
       } else {
-        await signup(formData.email, formData.password, formData.firstName, formData.lastName, formData.userType);
+        if (!formData.userType) {
+          toast({
+            title: "Error",
+            description: "Please select your user type",
+            variant: "destructive",
+          });
+          setIsLoading(false);
+          return;
+        }
+        
+        await signup(formData.email, formData.password, formData.firstName, formData.lastName, formData.userType as User['userType']);
         toast({
           title: "Account created!",
           description: "Your account has been created successfully.",
@@ -56,6 +66,8 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
         navigate('/student-dashboard');
       } else if (formData.userType === 'donor') {
         navigate('/donor-dashboard');
+      } else if (formData.userType === 'admin') {
+        navigate('/admin-dashboard');
       } else {
         navigate('/campaigns');
       }
@@ -108,17 +120,6 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
               </div>
 
               <div>
-                <Label htmlFor="username">Username</Label>
-                <Input
-                  id="username"
-                  value={formData.username}
-                  onChange={(e) => handleInputChange('username', e.target.value)}
-                  placeholder="Choose a unique username"
-                  required
-                />
-              </div>
-
-              <div>
                 <Label htmlFor="userType">I am a:</Label>
                 <select
                   id="userType"
@@ -127,11 +128,25 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
                   className="w-full mt-1 p-2 border rounded-md"
                   required
                 >
+                  <option value="">--Select--</option>
                   <option value="student">Student</option>
                   <option value="donor">Donor</option>
                   <option value="admin">Admin</option>
                 </select>
               </div>
+
+              {formData.userType === 'student' && (
+                <div>
+                  <Label htmlFor="username">Username</Label>
+                  <Input
+                    id="username"
+                    value={formData.username}
+                    onChange={(e) => handleInputChange('username', e.target.value)}
+                    placeholder="Choose a unique username"
+                    required
+                  />
+                </div>
+              )}
             </>
           )}
 
