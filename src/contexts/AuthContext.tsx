@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { supabase, UserProfile, signIn, signOut, getUserProfile } from '@/lib/supabase';
 import { User, Session } from '@supabase/supabase-js';
+import { toast } from '@/hooks/use-toast';
 
 interface AuthContextType {
   user: User | null;
@@ -29,7 +30,78 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
 
+  // Cleanup function to clear all auth-related data
+  const clearAuthData = async () => {
+    console.log('Clearing all auth data...');
+    
+    // Clear React state
+    setSession(null);
+    setUser(null);
+    setProfile(null);
+    
+    // Clear Supabase session
+    try {
+      await supabase.auth.signOut({ scope: 'local' });
+    } catch (error) {
+      console.error('Error during Supabase signOut:', error);
+    }
+    
+    // Clear localStorage (Supabase stores session data here)
+    try {
+      const keys = Object.keys(localStorage);
+      keys.forEach(key => {
+        if (key.startsWith('supabase.auth.token') || 
+            key.startsWith('sb-') || 
+            key.includes('supabase')) {
+          localStorage.removeItem(key);
+        }
+      });
+    } catch (error) {
+      console.error('Error clearing localStorage:', error);
+    }
+    
+    // Clear sessionStorage as well
+    try {
+      const keys = Object.keys(sessionStorage);
+      keys.forEach(key => {
+        if (key.startsWith('supabase.auth.token') || 
+            key.startsWith('sb-') || 
+            key.includes('supabase')) {
+          sessionStorage.removeItem(key);
+        }
+      });
+    } catch (error) {
+      console.error('Error clearing sessionStorage:', error);
+    }
+  };
+
+  // Handle session timeout with proper cleanup and user notification
+  const handleSessionTimeout = async () => {
+    console.warn('Session timeout detected - performing complete logout');
+    
+    // Clear all auth data
+    await clearAuthData();
+    
+    // Show user-friendly notification
+    toast({
+      title: "Session Expired",
+      description: "Your session has expired for security reasons. Please sign in again to continue.",
+      variant: "destructive",
+      duration: 6000,
+    });
+    
+    // Redirect to homepage
+    if (window.location.pathname !== '/') {
+      window.location.href = '/';
+    }
+  };
+
   useEffect(() => {
+    let timeoutTimer: NodeJS.Timeout;
+    let visibilityListener: (() => void) | null = null;
+    let validationInterval: NodeJS.Timeout;
+    let authSubscription: any = null;
+
     // Get initial session
     const getInitialSession = async () => {
       try {
@@ -37,6 +109,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         
         if (error) {
           console.error('Error getting initial session:', error);
+          await clearAuthData();
           return;
         }
 
@@ -47,6 +120,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         }
       } catch (error) {
         console.error('Error in getInitialSession:', error);
+        await clearAuthData();
       } finally {
         setLoading(false);
       }
@@ -54,42 +128,47 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
     getInitialSession();
 
-    // Safety timeout in case Supabase hangs
-    const timer = setTimeout(() => {
-      console.warn('Auth loading timeout reached, setting loading to false');
-      setLoading(false);
+    // Safety timeout with comprehensive cleanup
+    timeoutTimer = setTimeout(async () => {
+      console.warn('Auth loading timeout reached - triggering session timeout handler');
+      await handleSessionTimeout();
     }, 5000);
 
     // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        console.log('Auth state changed:', event, session?.user?.email);
-        
-        setSession(session);
-        
-        if (session?.user) {
-          setUser(session.user);
-          await loadUserProfile(session.user.id);
-        } else {
-          setUser(null);
-          setProfile(null);
+    const setupAuthListener = () => {
+      const { data: { subscription } } = supabase.auth.onAuthStateChange(
+        async (event, session) => {
+          console.log('Auth state changed:', event, session?.user?.email);
+          
+          // Clear the timeout since we got a response
+          if (timeoutTimer) {
+            clearTimeout(timeoutTimer);
+          }
+          
+          setSession(session);
+          
+          if (session?.user) {
+            setUser(session.user);
+            await loadUserProfile(session.user.id);
+          } else {
+            setUser(null);
+            setProfile(null);
+          }
+          
+          // Only set loading to false after we've processed the auth change
+          if (loading) {
+            setLoading(false);
+          }
         }
-        
-        // Only set loading to false after we've processed the auth change
-        if (loading) {
-          setLoading(false);
-        }
-      }
-    );
-
-    return () => {
-      clearTimeout(timer);
-      subscription.unsubscribe();
+      );
+      
+      authSubscription = subscription;
+      return subscription;
     };
-  }, [loading]);
 
-  // Fix: Force re-fetch session when tab becomes active
-  useEffect(() => {
+    const subscription = setupAuthListener();
+
+    // Fix: Force re-fetch session when tab becomes active
     const handleVisibilityChange = async () => {
       if (document.visibilityState === "visible") {
         try {
@@ -98,6 +177,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           
           if (error) {
             console.error('Error re-fetching session on visibility change:', error);
+            await handleSessionTimeout();
             return;
           }
 
@@ -116,37 +196,50 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           }
         } catch (error) {
           console.error('Error handling visibility change:', error);
+          await handleSessionTimeout();
         }
       }
     };
 
+    visibilityListener = handleVisibilityChange;
     document.addEventListener("visibilitychange", handleVisibilityChange);
-    return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
-  }, [session]);
 
-  // Fix: Add periodic session validation
-  useEffect(() => {
+    // Fix: Add periodic session validation with timeout handling
     const validateSession = async () => {
       if (session) {
         try {
           const { data: { user: currentUser }, error } = await supabase.auth.getUser();
           
           if (error || !currentUser) {
-            console.log('Session validation failed, clearing auth state');
-            setSession(null);
-            setUser(null);
-            setProfile(null);
+            console.log('Session validation failed, triggering timeout handler');
+            await handleSessionTimeout();
           }
         } catch (error) {
           console.error('Error validating session:', error);
+          await handleSessionTimeout();
         }
       }
     };
 
     // Validate session every 5 minutes
-    const interval = setInterval(validateSession, 5 * 60 * 1000);
-    return () => clearInterval(interval);
-  }, [session]);
+    validationInterval = setInterval(validateSession, 5 * 60 * 1000);
+
+    // Cleanup function
+    return () => {
+      if (timeoutTimer) {
+        clearTimeout(timeoutTimer);
+      }
+      if (authSubscription) {
+        authSubscription.unsubscribe();
+      }
+      if (visibilityListener) {
+        document.removeEventListener("visibilitychange", visibilityListener);
+      }
+      if (validationInterval) {
+        clearInterval(validationInterval);
+      }
+    };
+  }, [loading]);
 
   const loadUserProfile = async (userId: string) => {
     try {
@@ -233,8 +326,23 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   const logout = async () => {
-    await signOut();
-    // Session will be cleared via onAuthStateChange
+    try {
+      await clearAuthData();
+      
+      toast({
+        title: "Logged out successfully",
+        description: "You have been logged out of your account.",
+      });
+      
+      // Redirect to homepage
+      if (window.location.pathname !== '/') {
+        window.location.href = '/';
+      }
+    } catch (error) {
+      console.error('Logout error:', error);
+      // Even if logout fails, clear local data
+      await clearAuthData();
+    }
   };
 
   const updateProfile = async (updates: Partial<UserProfile>) => {
