@@ -9,17 +9,17 @@ if (!supabaseUrl || !supabaseAnonKey) {
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
-// Types for our database
+// Types for our database - updated to match actual schema
 export interface UserProfile {
   id: string;
   username?: string;
   first_name: string;
   last_name: string;
-  role: 'student' | 'donor' | 'admin';
-  profile_picture_url?: string;
-  banner_picture_url?: string;
+  user_type: 'student' | 'donor' | 'admin';
+  avatar_url?: string;
   bio?: string;
   location?: string;
+  interests?: string[];
   created_at: string;
   updated_at: string;
 }
@@ -28,24 +28,22 @@ export interface Campaign {
   id: string;
   student_id: string;
   title: string;
-  description: string;
-  story: string;
-  goal_amount: number;
-  raised_amount: number;
-  status: 'draft' | 'pending_review' | 'approved' | 'rejected' | 'completed';
-  youtube_video_url?: string;
+  aspirational_title?: string;
+  short_description?: string;
+  story?: string;
+  photo_url?: string;
+  banner_url?: string;
+  video_url?: string;
+  goal: number;
+  raised?: number;
   share_code: string;
-  program: string;
-  institution: string;
+  campaign_status: 'draft' | 'pending_review' | 'published' | 'rejected';
+  education_program?: string;
+  institution?: string;
   institution_url?: string;
   graduation_date?: string;
-  funding_breakdown?: any;
-  goals?: any;
   created_at: string;
   updated_at: string;
-  published_at?: string;
-  reviewed_at?: string;
-  reviewed_by?: string;
   student?: UserProfile;
 }
 
@@ -56,8 +54,6 @@ export interface Donation {
   amount: number;
   is_anonymous: boolean;
   message?: string;
-  payment_intent_id?: string;
-  status: 'pending' | 'completed' | 'failed' | 'refunded';
   created_at: string;
   donor?: UserProfile;
   campaign?: Campaign;
@@ -65,12 +61,10 @@ export interface Donation {
 
 export interface SupportingDocument {
   id: string;
-  campaign_id: string;
-  document_type: 'academic_transcript' | 'admission_letter' | 'financial_aid' | 'identity_proof' | 'other';
+  student_id: string;
   file_name: string;
-  file_path: string;
-  file_size?: number;
-  mime_type?: string;
+  file_url: string;
+  document_type?: string;
   uploaded_at: string;
 }
 
@@ -122,7 +116,7 @@ export const signUp = async (
   userData: {
     first_name: string;
     last_name: string;
-    role: 'student' | 'donor' | 'admin';
+    user_type: 'student' | 'donor' | 'admin';
     username?: string;
   }
 ) => {
@@ -144,7 +138,12 @@ export const signIn = async (email: string, password: string) => {
     password
   });
 
-  if (error) throw error;
+  if (error) {
+    if (error.message === 'Email not confirmed') {
+      throw new Error('Please confirm your email address. Check your inbox for a verification link.');
+    }
+    throw error;
+  }
   return data;
 };
 
@@ -159,10 +158,10 @@ export const getCurrentUser = async () => {
   return user;
 };
 
-// Database helpers
+// Database helpers - updated to use correct table name 'profiles'
 export const createUserProfile = async (profile: Omit<UserProfile, 'created_at' | 'updated_at'>) => {
   const { data, error } = await supabase
-    .from('user_profiles')
+    .from('profiles')
     .insert(profile)
     .select()
     .single();
@@ -173,7 +172,7 @@ export const createUserProfile = async (profile: Omit<UserProfile, 'created_at' 
 
 export const getUserProfile = async (userId: string) => {
   const { data, error } = await supabase
-    .from('user_profiles')
+    .from('profiles')
     .select('*')
     .eq('id', userId)
     .single();
@@ -184,7 +183,7 @@ export const getUserProfile = async (userId: string) => {
 
 export const updateUserProfile = async (userId: string, updates: Partial<UserProfile>) => {
   const { data, error } = await supabase
-    .from('user_profiles')
+    .from('profiles')
     .update(updates)
     .eq('id', userId)
     .select()
@@ -194,7 +193,7 @@ export const updateUserProfile = async (userId: string, updates: Partial<UserPro
   return data;
 };
 
-export const createCampaign = async (campaign: Omit<Campaign, 'id' | 'created_at' | 'updated_at' | 'raised_amount'>) => {
+export const createCampaign = async (campaign: Omit<Campaign, 'id' | 'created_at' | 'updated_at' | 'raised'>) => {
   const { data, error } = await supabase
     .from('campaigns')
     .insert(campaign)
@@ -205,16 +204,16 @@ export const createCampaign = async (campaign: Omit<Campaign, 'id' | 'created_at
   return data;
 };
 
-export const getCampaigns = async (status?: Campaign['status']) => {
+export const getCampaigns = async (status?: Campaign['campaign_status']) => {
   let query = supabase
     .from('campaigns')
     .select(`
       *,
-      student:user_profiles(*)
+      student:profiles(*)
     `);
 
   if (status) {
-    query = query.eq('status', status);
+    query = query.eq('campaign_status', status);
   }
 
   const { data, error } = await query.order('created_at', { ascending: false });
@@ -228,7 +227,7 @@ export const getCampaignByShareCode = async (shareCode: string) => {
     .from('campaigns')
     .select(`
       *,
-      student:user_profiles(*)
+      student:profiles(*)
     `)
     .eq('share_code', shareCode)
     .single();
@@ -265,7 +264,7 @@ export const getDonations = async (campaignId?: string, donorId?: string) => {
     .from('donations')
     .select(`
       *,
-      donor:user_profiles(*),
+      donor:profiles(*),
       campaign:campaigns(*)
     `);
 

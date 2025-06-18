@@ -72,10 +72,18 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   const login = async (email: string, password: string) => {
-    const { user: authUser } = await signIn(email, password);
-    if (authUser) {
-      setUser(authUser);
-      await loadUserProfile(authUser.id);
+    try {
+      const { user: authUser } = await signIn(email, password);
+      if (authUser) {
+        setUser(authUser);
+        await loadUserProfile(authUser.id);
+      }
+    } catch (error) {
+      // Handle specific email confirmation error
+      if (error instanceof Error && error.message.includes('Email not confirmed')) {
+        throw new Error('Please confirm your email address. Check your inbox for a verification link.');
+      }
+      throw error;
     }
   };
 
@@ -90,7 +98,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     // Check if username is unique for students
     if (userType === 'student' && username) {
       const { data: existingUser } = await supabase
-        .from('user_profiles')
+        .from('profiles')
         .select('username')
         .eq('username', username)
         .single();
@@ -106,12 +114,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     });
 
     if (authUser) {
-      // Create user profile
+      // Create user profile with correct field names
       const profileData: Omit<UserProfile, 'created_at' | 'updated_at'> = {
         id: authUser.id,
         first_name: firstName,
         last_name: lastName,
-        role: userType,
+        user_type: userType,
         username: userType === 'student' ? username : undefined,
       };
 
@@ -131,7 +139,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     if (!user) throw new Error('No user logged in');
     
     const updatedProfile = await supabase
-      .from('user_profiles')
+      .from('profiles')
       .update(updates)
       .eq('id', user.id)
       .select()
