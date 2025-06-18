@@ -68,6 +68,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       setProfile(userProfile);
     } catch (error) {
       console.error('Error loading user profile:', error);
+      setProfile(null);
     }
   };
 
@@ -95,37 +96,56 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     userType: 'student' | 'donor' | 'admin',
     username?: string
   ) => {
-    // Check if username is unique for students
-    if (userType === 'student' && username) {
-      const { data: existingUser } = await supabase
-        .from('profiles')
-        .select('username')
-        .eq('username', username)
-        .single();
-      
-      if (existingUser) {
-        throw new Error('Username already exists');
+    try {
+      // Check if username is unique for students
+      if (userType === 'student' && username) {
+        const { data: existingUser } = await supabase
+          .from('profiles')
+          .select('username')
+          .eq('username', username)
+          .single();
+        
+        if (existingUser) {
+          throw new Error('Username already exists');
+        }
       }
-    }
 
-    const { user: authUser } = await supabase.auth.signUp({
-      email,
-      password,
-    });
+      // Sign up the user
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email,
+        password,
+      });
 
-    if (authUser) {
-      // Create user profile with correct field names
-      const profileData: Omit<UserProfile, 'created_at' | 'updated_at'> = {
-        id: authUser.id,
-        first_name: firstName,
-        last_name: lastName,
-        user_type: userType,
-        username: userType === 'student' ? username : undefined,
-      };
+      if (authError) throw authError;
 
-      const newProfile = await createUserProfile(profileData);
-      setUser(authUser);
-      setProfile(newProfile);
+      if (authData.user) {
+        // Create user profile with correct field names
+        const profileData: Omit<UserProfile, 'created_at' | 'updated_at'> = {
+          id: authData.user.id,
+          first_name: firstName,
+          last_name: lastName,
+          user_type: userType,
+          username: userType === 'student' ? username : undefined,
+        };
+
+        // Insert profile directly using supabase client
+        const { data: newProfile, error: profileError } = await supabase
+          .from('profiles')
+          .insert(profileData)
+          .select()
+          .single();
+
+        if (profileError) {
+          console.error('Profile creation error:', profileError);
+          throw new Error('Failed to create user profile');
+        }
+
+        setUser(authData.user);
+        setProfile(newProfile);
+      }
+    } catch (error) {
+      console.error('Signup error:', error);
+      throw error;
     }
   };
 
@@ -138,15 +158,15 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const updateProfile = async (updates: Partial<UserProfile>) => {
     if (!user) throw new Error('No user logged in');
     
-    const updatedProfile = await supabase
+    const { data: updatedProfile, error } = await supabase
       .from('profiles')
       .update(updates)
       .eq('id', user.id)
       .select()
       .single();
 
-    if (updatedProfile.error) throw updatedProfile.error;
-    setProfile(updatedProfile.data);
+    if (error) throw error;
+    setProfile(updatedProfile);
   };
 
   const isAuthenticated = !!user;
