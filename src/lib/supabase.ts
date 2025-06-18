@@ -88,31 +88,53 @@ export const uploadFile = async (
   path: string,
   file: File
 ) => {
-  const { data, error } = await supabase.storage
-    .from(bucket)
-    .upload(path, file, {
-      cacheControl: '3600',
-      upsert: false
-    });
+  try {
+    const { data, error } = await supabase.storage
+      .from(bucket)
+      .upload(path, file, {
+        cacheControl: '3600',
+        upsert: false
+      });
 
-  if (error) throw error;
-  return data;
+    if (error) {
+      console.error('Storage upload error:', error);
+      throw new Error(`Upload failed: ${error.message}`);
+    }
+    
+    return data;
+  } catch (error) {
+    console.error('Upload file error:', error);
+    throw error;
+  }
 };
 
 export const getPublicUrl = (bucket: string, path: string) => {
-  const { data } = supabase.storage
-    .from(bucket)
-    .getPublicUrl(path);
-  
-  return data.publicUrl;
+  try {
+    const { data } = supabase.storage
+      .from(bucket)
+      .getPublicUrl(path);
+    
+    return data.publicUrl;
+  } catch (error) {
+    console.error('Get public URL error:', error);
+    throw error;
+  }
 };
 
 export const deleteFile = async (bucket: string, path: string) => {
-  const { error } = await supabase.storage
-    .from(bucket)
-    .remove([path]);
+  try {
+    const { error } = await supabase.storage
+      .from(bucket)
+      .remove([path]);
 
-  if (error) throw error;
+    if (error) {
+      console.error('Storage delete error:', error);
+      throw new Error(`Delete failed: ${error.message}`);
+    }
+  } catch (error) {
+    console.error('Delete file error:', error);
+    throw error;
+  }
 };
 
 // Auth helpers
