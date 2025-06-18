@@ -20,6 +20,11 @@ import { findCampaignByShareCode } from "@/utils/campaignShortUrl";
 import React from "react";
 
 const queryClient = new QueryClient();
+useEffect(() => {
+  if (!loading && !session && window.location.pathname.startsWith("/student-dashboard")) {
+    window.location.href = "/";
+  }
+}, [loading, session]);
 
 const ShortCampaignDetail = () => {
   // Special page for /c/:shareCode
