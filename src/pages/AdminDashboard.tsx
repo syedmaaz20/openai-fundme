@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import TopNav from "@/components/TopNav";
 import { useAuth } from "@/contexts/AuthContext";
@@ -30,7 +29,7 @@ interface StudentApplication {
 }
 
 const AdminDashboard = () => {
-  const { user, isAuthenticated } = useAuth();
+  const { user, profile, isAuthenticated, loading } = useAuth();
   const [selectedStudent, setSelectedStudent] = useState<StudentApplication | null>(null);
   const [applications, setApplications] = useState<StudentApplication[]>([
     {
@@ -61,8 +60,23 @@ const AdminDashboard = () => {
     }
   ]);
 
+  // Show loading while checking authentication
+  if (loading) {
+    return (
+      <div className="bg-gradient-to-b from-blue-50 via-slate-50 to-white min-h-screen flex flex-col">
+        <TopNav />
+        <main className="flex-1 w-full flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <p className="text-gray-600">Loading...</p>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
   // Redirect if not authenticated or not an admin
-  if (!isAuthenticated || user?.userType !== 'admin') {
+  if (!isAuthenticated || !user || profile?.user_type !== 'admin') {
     return <Navigate to="/" replace />;
   }
 

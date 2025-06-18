@@ -1,4 +1,3 @@
-
 import React from "react";
 import TopNav from "@/components/TopNav";
 import { useAuth } from "@/contexts/AuthContext";
@@ -8,10 +7,25 @@ import { Button } from "@/components/ui/button";
 import { Heart, DollarSign, Users, TrendingUp, Search, Filter } from "lucide-react";
 
 const DonorDashboard = () => {
-  const { user, isAuthenticated } = useAuth();
+  const { user, profile, isAuthenticated, loading } = useAuth();
+
+  // Show loading while checking authentication
+  if (loading) {
+    return (
+      <div className="bg-gradient-to-b from-blue-50 via-slate-50 to-white min-h-screen flex flex-col">
+        <TopNav />
+        <main className="flex-1 w-full flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <p className="text-gray-600">Loading...</p>
+          </div>
+        </main>
+      </div>
+    );
+  }
 
   // Redirect if not authenticated or not a donor
-  if (!isAuthenticated || user?.userType !== 'donor') {
+  if (!isAuthenticated || !user || profile?.user_type !== 'donor') {
     return <Navigate to="/" replace />;
   }
 
@@ -52,7 +66,7 @@ const DonorDashboard = () => {
       <main className="flex-1 w-full max-w-6xl mx-auto pt-8 px-4 lg:px-0">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Welcome back, {user?.firstName}! 🌟
+            Welcome back, {profile?.first_name || user.email}! 🌟
           </h1>
           <p className="text-gray-600">Your generosity is changing lives</p>
         </div>

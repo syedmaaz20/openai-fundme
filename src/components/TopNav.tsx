@@ -99,6 +99,7 @@ const TopNav = () => {
     }
   };
 
+  // Show loading skeleton while checking session
   if (loading) {
     return (
       <header className="sticky top-0 z-30 bg-white bg-opacity-95 shadow-sm w-full">
@@ -106,7 +107,7 @@ const TopNav = () => {
           <div className="flex items-center gap-2 font-bold text-2xl bg-gradient-to-r from-blue-700 via-blue-500 to-green-400 bg-clip-text text-transparent">
             EduFund
           </div>
-          <div className="w-8 h-8 bg-gray-200 rounded-full animate-pulse"></div>
+          <div className="w-20 h-8 bg-gray-200 rounded animate-pulse"></div>
         </nav>
       </header>
     );

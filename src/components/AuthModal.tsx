@@ -26,8 +26,13 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
     userType: 'student' as 'student' | 'donor' | 'admin'
   });
 
-  const { login, signup } = useAuth();
+  const { login, signup, isAuthenticated } = useAuth();
   const navigate = useNavigate();
+
+  // If user is already authenticated, don't show the modal
+  if (isAuthenticated) {
+    return null;
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
