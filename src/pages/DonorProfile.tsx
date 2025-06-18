@@ -1,8 +1,6 @@
-
 import React, { useState } from "react";
 import TopNav from "@/components/TopNav";
 import { useAuth } from "@/contexts/AuthContext";
-import { Navigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,25 +9,20 @@ import { Edit3, Check, X, Camera, Heart, Users, DollarSign, Eye, Settings, Share
 import { toast } from "@/hooks/use-toast";
 
 const DonorProfile = () => {
-  const { user, isAuthenticated } = useAuth();
+  const { user, profile } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const [profileData, setProfileData] = useState({
-    firstName: user?.firstName || '',
-    lastName: user?.lastName || '',
+    firstName: profile?.first_name || '',
+    lastName: profile?.last_name || '',
     email: user?.email || '',
-    avatar: user?.avatar || 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=150&h=150&q=80',
-    bio: 'Passionate about supporting education and helping students achieve their dreams. I believe in the power of education to transform lives and communities.',
-    location: 'San Francisco, CA',
-    interests: ['Education', 'Social Impact', 'Technology', 'Community Development'],
+    avatar: profile?.avatar_url || 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=150&h=150&q=80',
+    bio: profile?.bio || 'Passionate about supporting education and helping students achieve their dreams. I believe in the power of education to transform lives and communities.',
+    location: profile?.location || 'San Francisco, CA',
+    interests: profile?.interests || ['Education', 'Social Impact', 'Technology', 'Community Development'],
     totalDonated: 2750,
     studentsSupported: 8,
     yearsActive: 2
   });
-
-  // Redirect if not authenticated or not a donor
-  if (!isAuthenticated || user?.userType !== 'donor') {
-    return <Navigate to="/" replace />;
-  }
 
   const handleSave = () => {
     setIsEditing(false);

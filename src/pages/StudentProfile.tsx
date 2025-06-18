@@ -1,8 +1,6 @@
-
 import React, { useState } from "react";
 import TopNav from "@/components/TopNav";
 import { useAuth } from "@/contexts/AuthContext";
-import { Navigate } from "react-router-dom";
 import EditableProfileCard from "@/components/student-profile/EditableProfileCard";
 import EditableEducationPath from "@/components/student-profile/EditableEducationPath";
 import EditableStory from "@/components/student-profile/EditableStory";
@@ -11,10 +9,12 @@ import EditableGoals from "@/components/student-profile/EditableGoals";
 import ProfileSidebar from "@/components/student-profile/ProfileSidebar";
 
 const StudentProfile = () => {
-  const { user, isAuthenticated } = useAuth();
+  const { user, profile } = useAuth();
   const [profileData, setProfileData] = useState({
-    studentName: user?.firstName + ' ' + user?.lastName || '',
-    photo: user?.avatar || 'https://images.unsplash.com/photo-1494790108755-2616b612b407?auto=format&fit=crop&w=150&h=150&q=80',
+    studentName: (profile?.first_name && profile?.last_name) 
+      ? `${profile.first_name} ${profile.last_name}` 
+      : user?.email || '',
+    photo: profile?.avatar_url || 'https://images.unsplash.com/photo-1494790108755-2616b612b407?auto=format&fit=crop&w=150&h=150&q=80',
     program: 'Social Work',
     institution: 'University of California, Los Angeles',
     institutionUrl: 'https://www.ucla.edu/',
@@ -32,13 +32,8 @@ const StudentProfile = () => {
       { title: 'Maintain GPA', description: 'Keep GPA above 3.5', completed: true }
     ],
     campaignPublished: false,
-    shareCode: 'maria-rodriguez-sw'
+    shareCode: profile?.username || 'student-campaign'
   });
-
-  // Redirect if not authenticated or not a student
-  if (!isAuthenticated || user?.userType !== 'student') {
-    return <Navigate to="/" replace />;
-  }
 
   const updateProfileData = (updates: Partial<typeof profileData>) => {
     setProfileData(prev => ({ ...prev, ...updates }));
