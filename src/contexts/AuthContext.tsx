@@ -54,6 +54,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
     getInitialSession();
 
+    // Safety timeout in case Supabase hangs
+    const timer = setTimeout(() => {
+      console.warn('Auth loading timeout reached, setting loading to false');
+      setLoading(false);
+    }, 5000);
+
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
@@ -77,9 +83,70 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     );
 
     return () => {
+      clearTimeout(timer);
       subscription.unsubscribe();
     };
   }, [loading]);
+
+  // Fix: Force re-fetch session when tab becomes active
+  useEffect(() => {
+    const handleVisibilityChange = async () => {
+      if (document.visibilityState === "visible") {
+        try {
+          console.log('Tab became visible, re-fetching session...');
+          const { data: { session: currentSession }, error } = await supabase.auth.getSession();
+          
+          if (error) {
+            console.error('Error re-fetching session on visibility change:', error);
+            return;
+          }
+
+          // Only update if session actually changed
+          if (currentSession?.access_token !== session?.access_token) {
+            console.log('Session changed, updating state...');
+            setSession(currentSession);
+            
+            if (currentSession?.user) {
+              setUser(currentSession.user);
+              await loadUserProfile(currentSession.user.id);
+            } else {
+              setUser(null);
+              setProfile(null);
+            }
+          }
+        } catch (error) {
+          console.error('Error handling visibility change:', error);
+        }
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
+  }, [session]);
+
+  // Fix: Add periodic session validation
+  useEffect(() => {
+    const validateSession = async () => {
+      if (session) {
+        try {
+          const { data: { user: currentUser }, error } = await supabase.auth.getUser();
+          
+          if (error || !currentUser) {
+            console.log('Session validation failed, clearing auth state');
+            setSession(null);
+            setUser(null);
+            setProfile(null);
+          }
+        } catch (error) {
+          console.error('Error validating session:', error);
+        }
+      }
+    };
+
+    // Validate session every 5 minutes
+    const interval = setInterval(validateSession, 5 * 60 * 1000);
+    return () => clearInterval(interval);
+  }, [session]);
 
   const loadUserProfile = async (userId: string) => {
     try {
