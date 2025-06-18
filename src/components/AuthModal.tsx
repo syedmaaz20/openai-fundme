@@ -1,11 +1,10 @@
-
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
-import { useAuth, User } from '@/contexts/AuthContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
 
@@ -24,7 +23,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
     firstName: '',
     lastName: '',
     username: '',
-    userType: 'student' as User['userType']
+    userType: 'student' as 'student' | 'donor' | 'admin'
   });
 
   const { login, signup } = useAuth();
@@ -42,7 +41,24 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
           description: "You have successfully logged in.",
         });
       } else {
-        await signup(formData.email, formData.password, formData.firstName, formData.lastName, formData.userType);
+        // Validate required fields
+        if (!formData.firstName || !formData.lastName || !formData.email || !formData.password) {
+          throw new Error('Please fill in all required fields');
+        }
+
+        if (formData.userType === 'student' && !formData.username) {
+          throw new Error('Username is required for students');
+        }
+
+        await signup(
+          formData.email, 
+          formData.password, 
+          formData.firstName, 
+          formData.lastName, 
+          formData.userType,
+          formData.userType === 'student' ? formData.username : undefined
+        );
+        
         toast({
           title: "Account created!",
           description: "Your account has been created successfully.",
@@ -56,6 +72,8 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
         navigate('/student-dashboard');
       } else if (formData.userType === 'donor') {
         navigate('/donor-dashboard');
+      } else if (formData.userType === 'admin') {
+        navigate('/admin-dashboard');
       } else {
         navigate('/campaigns');
       }
@@ -88,7 +106,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
             <>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <Label htmlFor="firstName">First Name</Label>
+                  <Label htmlFor="firstName">First Name *</Label>
                   <Input
                     id="firstName"
                     value={formData.firstName}
@@ -97,7 +115,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
                   />
                 </div>
                 <div>
-                  <Label htmlFor="lastName">Last Name</Label>
+                  <Label htmlFor="lastName">Last Name *</Label>
                   <Input
                     id="lastName"
                     value={formData.lastName}
@@ -108,18 +126,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
               </div>
 
               <div>
-                <Label htmlFor="username">Username</Label>
-                <Input
-                  id="username"
-                  value={formData.username}
-                  onChange={(e) => handleInputChange('username', e.target.value)}
-                  placeholder="Choose a unique username"
-                  required
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="userType">I am a:</Label>
+                <Label htmlFor="userType">I am a: *</Label>
                 <select
                   id="userType"
                   value={formData.userType}
@@ -132,11 +139,27 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
                   <option value="admin">Admin</option>
                 </select>
               </div>
+
+              {formData.userType === 'student' && (
+                <div>
+                  <Label htmlFor="username">Username *</Label>
+                  <Input
+                    id="username"
+                    value={formData.username}
+                    onChange={(e) => handleInputChange('username', e.target.value)}
+                    placeholder="Choose a unique username"
+                    required
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    This will be used in your campaign URL
+                  </p>
+                </div>
+              )}
             </>
           )}
 
           <div>
-            <Label htmlFor="email">Email</Label>
+            <Label htmlFor="email">Email *</Label>
             <Input
               id="email"
               type="email"
@@ -147,14 +170,20 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
           </div>
 
           <div>
-            <Label htmlFor="password">Password</Label>
+            <Label htmlFor="password">Password *</Label>
             <Input
               id="password"
               type="password"
               value={formData.password}
               onChange={(e) => handleInputChange('password', e.target.value)}
               required
+              minLength={6}
             />
+            {!isLogin && (
+              <p className="text-xs text-gray-500 mt-1">
+                Minimum 6 characters
+              </p>
+            )}
           </div>
 
           {isLogin && (

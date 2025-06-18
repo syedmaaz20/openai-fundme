@@ -1,82 +1,144 @@
-
-import React, { createContext, useContext, useState, ReactNode } from 'react';
-
-export interface User {
-  id: string;
-  email: string;
-  firstName: string;
-  lastName: string;
-  userType: 'student' | 'donor' | 'admin';
-  avatar?: string;
-}
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { supabase, UserProfile, signIn, signOut, getCurrentUser, createUserProfile, getUserProfile } from '@/lib/supabase';
+import { User } from '@supabase/supabase-js';
 
 interface AuthContextType {
   user: User | null;
+  profile: UserProfile | null;
+  loading: boolean;
   login: (email: string, password: string) => Promise<void>;
-  signup: (email: string, password: string, firstName: string, lastName: string, userType: User['userType']) => Promise<void>;
-  logout: () => void;
+  signup: (
+    email: string, 
+    password: string, 
+    firstName: string, 
+    lastName: string, 
+    userType: 'student' | 'donor' | 'admin',
+    username?: string
+  ) => Promise<void>;
+  logout: () => Promise<void>;
   isAuthenticated: boolean;
+  updateProfile: (updates: Partial<UserProfile>) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Mock users data
-const mockUsers: User[] = [
-  {
-    id: '1',
-    email: 'maria@student.com',
-    firstName: 'Maria',
-    lastName: 'Rodriguez',
-    userType: 'student',
-    avatar: 'https://images.unsplash.com/photo-1494790108755-2616b612b407?auto=format&fit=crop&w=150&h=150&q=80'
-  },
-  {
-    id: '2',
-    email: 'john@donor.com',
-    firstName: 'John',
-    lastName: 'Smith',
-    userType: 'donor',
-    avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=150&h=150&q=80'
-  },
-  {
-    id: '3',
-    email: 'admin@edufund.com',
-    firstName: 'Admin',
-    lastName: 'User',
-    userType: 'admin',
-    avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=150&h=150&q=80'
-  }
-];
-
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
+  const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  const login = async (email: string, password: string) => {
-    // Mock login - find user by email
-    const foundUser = mockUsers.find(u => u.email === email);
-    if (foundUser) {
-      setUser(foundUser);
-    } else {
-      throw new Error('Invalid credentials');
+  useEffect(() => {
+    // Get initial session
+    const getInitialSession = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.user) {
+          setUser(session.user);
+          await loadUserProfile(session.user.id);
+        }
+      } catch (error) {
+        console.error('Error getting initial session:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    getInitialSession();
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        if (session?.user) {
+          setUser(session.user);
+          await loadUserProfile(session.user.id);
+        } else {
+          setUser(null);
+          setProfile(null);
+        }
+        setLoading(false);
+      }
+    );
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const loadUserProfile = async (userId: string) => {
+    try {
+      const userProfile = await getUserProfile(userId);
+      setProfile(userProfile);
+    } catch (error) {
+      console.error('Error loading user profile:', error);
     }
   };
 
-  const signup = async (email: string, password: string, firstName: string, lastName: string, userType: User['userType']) => {
-    // Mock signup - create new user
-    const newUser: User = {
-      id: Date.now().toString(),
-      email,
-      firstName,
-      lastName,
-      userType,
-      avatar: `https://images.unsplash.com/photo-1494790108755-2616b612b407?auto=format&fit=crop&w=150&h=150&q=80`
-    };
-    mockUsers.push(newUser);
-    setUser(newUser);
+  const login = async (email: string, password: string) => {
+    const { user: authUser } = await signIn(email, password);
+    if (authUser) {
+      setUser(authUser);
+      await loadUserProfile(authUser.id);
+    }
   };
 
-  const logout = () => {
+  const signup = async (
+    email: string, 
+    password: string, 
+    firstName: string, 
+    lastName: string, 
+    userType: 'student' | 'donor' | 'admin',
+    username?: string
+  ) => {
+    // Check if username is unique for students
+    if (userType === 'student' && username) {
+      const { data: existingUser } = await supabase
+        .from('user_profiles')
+        .select('username')
+        .eq('username', username)
+        .single();
+      
+      if (existingUser) {
+        throw new Error('Username already exists');
+      }
+    }
+
+    const { user: authUser } = await supabase.auth.signUp({
+      email,
+      password,
+    });
+
+    if (authUser) {
+      // Create user profile
+      const profileData: Omit<UserProfile, 'created_at' | 'updated_at'> = {
+        id: authUser.id,
+        first_name: firstName,
+        last_name: lastName,
+        role: userType,
+        username: userType === 'student' ? username : undefined,
+      };
+
+      const newProfile = await createUserProfile(profileData);
+      setUser(authUser);
+      setProfile(newProfile);
+    }
+  };
+
+  const logout = async () => {
+    await signOut();
     setUser(null);
+    setProfile(null);
+  };
+
+  const updateProfile = async (updates: Partial<UserProfile>) => {
+    if (!user) throw new Error('No user logged in');
+    
+    const updatedProfile = await supabase
+      .from('user_profiles')
+      .update(updates)
+      .eq('id', user.id)
+      .select()
+      .single();
+
+    if (updatedProfile.error) throw updatedProfile.error;
+    setProfile(updatedProfile.data);
   };
 
   const isAuthenticated = !!user;
@@ -84,10 +146,13 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   return (
     <AuthContext.Provider value={{
       user,
+      profile,
+      loading,
       login,
       signup,
       logout,
-      isAuthenticated
+      isAuthenticated,
+      updateProfile
     }}>
       {children}
     </AuthContext.Provider>

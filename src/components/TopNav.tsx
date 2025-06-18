@@ -1,4 +1,3 @@
-
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import React, { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
@@ -22,7 +21,7 @@ const navLinks = [
 const TopNav = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { user, logout, isAuthenticated } = useAuth();
+  const { user, profile, logout, isAuthenticated, loading } = useAuth();
   const [showAuthModal, setShowAuthModal] = useState(false);
 
   const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
@@ -37,13 +36,13 @@ const TopNav = () => {
     navigate('/student-profile');
   };
 
-  const handleLogout = () => {
-    logout();
+  const handleLogout = async () => {
+    await logout();
     navigate('/');
   };
 
   const getDashboardRoute = () => {
-    switch (user?.userType) {
+    switch (profile?.role) {
       case 'student':
         return '/student-dashboard';
       case 'donor':
@@ -56,7 +55,7 @@ const TopNav = () => {
   };
 
   const getProfileRoute = () => {
-    switch (user?.userType) {
+    switch (profile?.role) {
       case 'student':
         return '/student-profile';
       case 'donor':
@@ -65,6 +64,19 @@ const TopNav = () => {
         return '/';
     }
   };
+
+  if (loading) {
+    return (
+      <header className="sticky top-0 z-30 bg-white bg-opacity-95 shadow-sm w-full">
+        <nav className="max-w-6xl mx-auto flex items-center justify-between px-4 py-4">
+          <div className="flex items-center gap-2 font-bold text-2xl bg-gradient-to-r from-blue-700 via-blue-500 to-green-400 bg-clip-text text-transparent">
+            EduFund
+          </div>
+          <div className="w-8 h-8 bg-gray-200 rounded-full animate-pulse"></div>
+        </nav>
+      </header>
+    );
+  }
 
   return (
     <>
@@ -105,7 +117,7 @@ const TopNav = () => {
             
             {isAuthenticated ? (
               <>
-                {user?.userType === 'student' && (
+                {profile?.role === 'student' && (
                   <li>
                     <button
                       onClick={handleStartCampaign}
@@ -118,8 +130,16 @@ const TopNav = () => {
                 <li className="flex items-center">
                   <DropdownMenu>
                     <DropdownMenuTrigger className="flex items-center gap-2 px-3 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors">
-                      <User size={16} />
-                      <span className="text-sm font-medium">{user?.firstName}</span>
+                      {profile?.profile_picture_url ? (
+                        <img 
+                          src={profile.profile_picture_url} 
+                          alt={profile.first_name}
+                          className="w-6 h-6 rounded-full object-cover"
+                        />
+                      ) : (
+                        <User size={16} />
+                      )}
+                      <span className="text-sm font-medium">{profile?.first_name}</span>
                       <ChevronDown size={14} />
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="w-48 bg-white border shadow-lg z-50">
