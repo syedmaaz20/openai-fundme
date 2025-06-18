@@ -1,10 +1,11 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { supabase, UserProfile, signIn, signOut, getCurrentUser, createUserProfile, getUserProfile } from '@/lib/supabase';
-import { User } from '@supabase/supabase-js';
+import { supabase, UserProfile, signIn, signOut, getUserProfile } from '@/lib/supabase';
+import { User, Session } from '@supabase/supabase-js';
 
 interface AuthContextType {
   user: User | null;
   profile: UserProfile | null;
+  session: Session | null;
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
   signup: (
@@ -25,19 +26,27 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     // Get initial session
     const getInitialSession = async () => {
       try {
-        const { data: { session } } = await supabase.auth.getSession();
-        if (session?.user) {
-          setUser(session.user);
-          await loadUserProfile(session.user.id);
+        const { data: { session: initialSession }, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          console.error('Error getting initial session:', error);
+          return;
+        }
+
+        if (initialSession?.user) {
+          setSession(initialSession);
+          setUser(initialSession.user);
+          await loadUserProfile(initialSession.user.id);
         }
       } catch (error) {
-        console.error('Error getting initial session:', error);
+        console.error('Error in getInitialSession:', error);
       } finally {
         setLoading(false);
       }
@@ -48,6 +57,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
+        console.log('Auth state changed:', event, session?.user?.email);
+        
+        setSession(session);
+        
         if (session?.user) {
           setUser(session.user);
           await loadUserProfile(session.user.id);
@@ -55,12 +68,18 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           setUser(null);
           setProfile(null);
         }
-        setLoading(false);
+        
+        // Only set loading to false after we've processed the auth change
+        if (loading) {
+          setLoading(false);
+        }
       }
     );
 
-    return () => subscription.unsubscribe();
-  }, []);
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [loading]);
 
   const loadUserProfile = async (userId: string) => {
     try {
@@ -75,10 +94,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const login = async (email: string, password: string) => {
     try {
       const { user: authUser } = await signIn(email, password);
-      if (authUser) {
-        setUser(authUser);
-        await loadUserProfile(authUser.id);
-      }
+      // Session will be updated via onAuthStateChange
     } catch (error) {
       // Handle specific email confirmation error
       if (error instanceof Error && error.message.includes('Email not confirmed')) {
@@ -140,7 +156,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           throw new Error('Failed to create user profile');
         }
 
-        setUser(authData.user);
+        // Session will be updated via onAuthStateChange
         setProfile(newProfile);
       }
     } catch (error) {
@@ -151,8 +167,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const logout = async () => {
     await signOut();
-    setUser(null);
-    setProfile(null);
+    // Session will be cleared via onAuthStateChange
   };
 
   const updateProfile = async (updates: Partial<UserProfile>) => {
@@ -169,12 +184,13 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setProfile(updatedProfile);
   };
 
-  const isAuthenticated = !!user;
+  const isAuthenticated = !!session?.user;
 
   return (
     <AuthContext.Provider value={{
       user,
       profile,
+      session,
       loading,
       login,
       signup,
