@@ -103,7 +103,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           .from('profiles')
           .select('username')
           .eq('username', username)
-          .single();
+          .maybeSingle();
         
         if (existingUser) {
           throw new Error('Username already exists');
