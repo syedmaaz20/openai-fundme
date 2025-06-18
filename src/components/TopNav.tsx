@@ -42,7 +42,7 @@ const TopNav = () => {
   };
 
   const getDashboardRoute = () => {
-    switch (profile?.role) {
+    switch (profile?.user_type) {
       case 'student':
         return '/student-dashboard';
       case 'donor':
@@ -55,7 +55,7 @@ const TopNav = () => {
   };
 
   const getProfileRoute = () => {
-    switch (profile?.role) {
+    switch (profile?.user_type) {
       case 'student':
         return '/student-profile';
       case 'donor':
@@ -115,9 +115,9 @@ const TopNav = () => {
               </li>
             ))}
             
-            {isAuthenticated ? (
+            {isAuthenticated && user ? (
               <>
-                {profile?.role === 'student' && (
+                {profile?.user_type === 'student' && (
                   <li>
                     <button
                       onClick={handleStartCampaign}
@@ -130,16 +130,16 @@ const TopNav = () => {
                 <li className="flex items-center">
                   <DropdownMenu>
                     <DropdownMenuTrigger className="flex items-center gap-2 px-3 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors">
-                      {profile?.profile_picture_url ? (
+                      {profile?.avatar_url ? (
                         <img 
-                          src={profile.profile_picture_url} 
+                          src={profile.avatar_url} 
                           alt={profile.first_name}
                           className="w-6 h-6 rounded-full object-cover"
                         />
                       ) : (
                         <User size={16} />
                       )}
-                      <span className="text-sm font-medium">{profile?.first_name}</span>
+                      <span className="text-sm font-medium">{profile?.first_name || user.email}</span>
                       <ChevronDown size={14} />
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="w-48 bg-white border shadow-lg z-50">
@@ -178,7 +178,19 @@ const TopNav = () => {
           
           {/* Mobile: Hamburger button */}
           <div className="md:hidden">
-            {/* Just placeholder: for MVP we omit mobile nav */}
+            {!isAuthenticated ? (
+              <button
+                onClick={() => setShowAuthModal(true)}
+                className="py-2 px-4 rounded-lg bg-gradient-to-r from-blue-600 to-green-400 text-white font-semibold shadow hover:scale-105 transition text-sm"
+              >
+                Sign In
+              </button>
+            ) : (
+              <div className="flex items-center gap-2">
+                <span className="text-sm">{profile?.first_name || user?.email}</span>
+                <User size={16} />
+              </div>
+            )}
           </div>
         </nav>
       </header>
