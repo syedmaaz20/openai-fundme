@@ -52,6 +52,11 @@
     --sidebar-border: 220 13% 91%;
 
     --sidebar-ring: 217.2 91.2% 59.8%;
+
+    /* Card animation properties */
+    --card-rotation: 0deg;
+    --card-translate-y: 0px;
+    --card-scale: 1;
   }
 
   .dark {
@@ -103,18 +108,50 @@
   }
 }
 
-@layer utilities {
-  .line-clamp-1 {
-    display: -webkit-box;
-    -webkit-line-clamp: 1;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
+/* Campaign card animations and styling */
+@layer components {
+  .campaign-card {
+    --card-deg: 0.8deg;
+    --card-shadow-distance: 4px;
+    transform: rotate(var(--card-deg)) translateY(var(--card-translate-y)) scale(var(--card-scale));
+    transition: all 0.3s ease-in-out;
+    will-change: transform;
+    box-shadow: 2px 2px 0px rgba(0, 0, 0, 0.1), var(--card-shadow-distance) var(--card-shadow-distance) 0px rgba(0, 0, 0, 0.15);
   }
-  
-  .line-clamp-3 {
-    display: -webkit-box;
-    -webkit-line-clamp: 3;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
+
+  .campaign-card:hover {
+    --card-deg: 0deg;
+    --card-translate-y: -8px;
+    --card-shadow-distance: 8px;
+    transform: rotate(var(--card-deg)) translateY(var(--card-translate-y)) scale(1.02);
+    box-shadow: 2px 2px 0px rgba(0, 0, 0, 0.1), var(--card-shadow-distance) var(--card-shadow-distance) 0px rgba(0, 0, 0, 0.2);
+  }
+
+  .campaign-card:nth-child(2n) {
+    --card-deg: -0.8deg;
+  }
+
+  .campaign-card:nth-child(2n + 1) {
+    --card-deg: -0.6deg;
+  }
+
+  .campaign-card:nth-child(3n) {
+    --card-deg: 0.6deg;
+  }
+
+  .campaign-card:nth-child(4n + 2) {
+    --card-deg: -0.75deg;
+  }
+
+  .campaign-card:nth-child(5n) {
+    --card-deg: 0.25deg;
+  }
+
+  .campaign-card:nth-child(6n + 3) {
+    --card-deg: -0.3deg;
+  }
+
+  .campaign-card:nth-child(7n) {
+    --card-deg: 0.9deg;
   }
 }

@@ -51,7 +51,6 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
           setIsLoading(false);
           return;
         }
-        
         await signup(formData.email, formData.password, formData.firstName, formData.lastName, formData.userType as User['userType']);
         toast({
           title: "Account created!",
@@ -66,8 +65,6 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
         navigate('/student-dashboard');
       } else if (formData.userType === 'donor') {
         navigate('/donor-dashboard');
-      } else if (formData.userType === 'admin') {
-        navigate('/admin-dashboard');
       } else {
         navigate('/campaigns');
       }
