@@ -1,6 +1,8 @@
+
 import React, { useState } from "react";
 import TopNav from "@/components/TopNav";
 import { useAuth } from "@/contexts/AuthContext";
+import { Navigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -28,7 +30,7 @@ interface StudentApplication {
 }
 
 const AdminDashboard = () => {
-  const { user, profile } = useAuth();
+  const { user, isAuthenticated } = useAuth();
   const [selectedStudent, setSelectedStudent] = useState<StudentApplication | null>(null);
   const [applications, setApplications] = useState<StudentApplication[]>([
     {
@@ -58,6 +60,11 @@ const AdminDashboard = () => {
       story: 'Coming from a low-income family, I have always dreamed of becoming an engineer...'
     }
   ]);
+
+  // Redirect if not authenticated or not an admin
+  if (!isAuthenticated || user?.userType !== 'admin') {
+    return <Navigate to="/" replace />;
+  }
 
   const handleViewDetails = (student: StudentApplication) => {
     setSelectedStudent(student);

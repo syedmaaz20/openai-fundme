@@ -1,3 +1,4 @@
+
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import React, { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
@@ -10,17 +11,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import { toast } from "@/hooks/use-toast";
 
 const navLinks = [
   { label: "Home", href: "/" },
@@ -32,10 +22,8 @@ const navLinks = [
 const TopNav = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { user, profile, logout, isAuthenticated, loading } = useAuth();
+  const { user, logout, isAuthenticated } = useAuth();
   const [showAuthModal, setShowAuthModal] = useState(false);
-  const [showLogoutDialog, setShowLogoutDialog] = useState(false);
-  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
     e.preventDefault();
@@ -49,34 +37,13 @@ const TopNav = () => {
     navigate('/student-profile');
   };
 
-  const handleLogout = async () => {
-    setIsLoggingOut(true);
-    try {
-      await logout();
-      setShowLogoutDialog(false);
-      toast({
-        title: "Logged out successfully",
-        description: "You have been logged out of your account.",
-      });
-      navigate('/');
-    } catch (error) {
-      console.error('Logout error:', error);
-      toast({
-        title: "Logout failed",
-        description: "There was an error logging out. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoggingOut(false);
-    }
-  };
-
-  const confirmLogout = () => {
-    setShowLogoutDialog(true);
+  const handleLogout = () => {
+    logout();
+    navigate('/');
   };
 
   const getDashboardRoute = () => {
-    switch (profile?.user_type) {
+    switch (user?.userType) {
       case 'student':
         return '/student-dashboard';
       case 'donor':
@@ -89,7 +56,7 @@ const TopNav = () => {
   };
 
   const getProfileRoute = () => {
-    switch (profile?.user_type) {
+    switch (user?.userType) {
       case 'student':
         return '/student-profile';
       case 'donor':
@@ -98,20 +65,6 @@ const TopNav = () => {
         return '/';
     }
   };
-
-  // Show loading skeleton while checking session
-  if (loading) {
-    return (
-      <header className="sticky top-0 z-30 bg-white bg-opacity-95 shadow-sm w-full">
-        <nav className="max-w-6xl mx-auto flex items-center justify-between px-4 py-4">
-          <div className="flex items-center gap-2 font-bold text-2xl bg-gradient-to-r from-blue-700 via-blue-500 to-green-400 bg-clip-text text-transparent">
-            EduFund
-          </div>
-          <div className="w-20 h-8 bg-gray-200 rounded animate-pulse"></div>
-        </nav>
-      </header>
-    );
-  }
 
   return (
     <>
@@ -150,9 +103,9 @@ const TopNav = () => {
               </li>
             ))}
             
-            {isAuthenticated && user ? (
+            {isAuthenticated ? (
               <>
-                {profile?.user_type === 'student' && (
+                {user?.userType === 'student' && (
                   <li>
                     <button
                       onClick={handleStartCampaign}
@@ -165,16 +118,8 @@ const TopNav = () => {
                 <li className="flex items-center">
                   <DropdownMenu>
                     <DropdownMenuTrigger className="flex items-center gap-2 px-3 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors">
-                      {profile?.avatar_url ? (
-                        <img 
-                          src={profile.avatar_url} 
-                          alt={profile.first_name}
-                          className="w-6 h-6 rounded-full object-cover"
-                        />
-                      ) : (
-                        <User size={16} />
-                      )}
-                      <span className="text-sm font-medium">{profile?.first_name || user.email}</span>
+                      <User size={16} />
+                      <span className="text-sm font-medium">{user?.firstName}</span>
                       <ChevronDown size={14} />
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="w-48 bg-white border shadow-lg z-50">
@@ -191,10 +136,7 @@ const TopNav = () => {
                         Settings
                       </DropdownMenuItem>
                       <DropdownMenuSeparator />
-                      <DropdownMenuItem 
-                        onClick={confirmLogout}
-                        className="text-red-600 focus:text-red-600 focus:bg-red-50"
-                      >
+                      <DropdownMenuItem onClick={handleLogout}>
                         <LogOut size={16} className="mr-2" />
                         Logout
                       </DropdownMenuItem>
@@ -216,77 +158,10 @@ const TopNav = () => {
           
           {/* Mobile: Hamburger button */}
           <div className="md:hidden">
-            {!isAuthenticated ? (
-              <button
-                onClick={() => setShowAuthModal(true)}
-                className="py-2 px-4 rounded-lg bg-gradient-to-r from-blue-600 to-green-400 text-white font-semibold shadow hover:scale-105 transition text-sm"
-              >
-                Sign In
-              </button>
-            ) : (
-              <DropdownMenu>
-                <DropdownMenuTrigger className="flex items-center gap-2 px-3 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors">
-                  {profile?.avatar_url ? (
-                    <img 
-                      src={profile.avatar_url} 
-                      alt={profile.first_name}
-                      className="w-6 h-6 rounded-full object-cover"
-                    />
-                  ) : (
-                    <User size={16} />
-                  )}
-                  <span className="text-sm font-medium">{profile?.first_name || user?.email}</span>
-                  <ChevronDown size={14} />
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-48 bg-white border shadow-lg z-50">
-                  <DropdownMenuItem onClick={() => navigate(getDashboardRoute())}>
-                    <LayoutDashboard size={16} className="mr-2" />
-                    Dashboard
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => navigate(getProfileRoute())}>
-                    <UserCircle size={16} className="mr-2" />
-                    Profile
-                  </DropdownMenuItem>
-                  <DropdownMenuItem>
-                    <Settings size={16} className="mr-2" />
-                    Settings
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem 
-                    onClick={confirmLogout}
-                    className="text-red-600 focus:text-red-600 focus:bg-red-50"
-                  >
-                    <LogOut size={16} className="mr-2" />
-                    Logout
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            )}
+            {/* Just placeholder: for MVP we omit mobile nav */}
           </div>
         </nav>
       </header>
-
-      {/* Logout Confirmation Dialog */}
-      <AlertDialog open={showLogoutDialog} onOpenChange={setShowLogoutDialog}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Confirm Logout</AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to log out? You will need to sign in again to access your account.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={isLoggingOut}>Cancel</AlertDialogCancel>
-            <AlertDialogAction 
-              onClick={handleLogout}
-              disabled={isLoggingOut}
-              className="bg-red-600 hover:bg-red-700"
-            >
-              {isLoggingOut ? 'Logging out...' : 'Logout'}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
 
       <AuthModal 
         isOpen={showAuthModal} 

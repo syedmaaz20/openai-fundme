@@ -1,11 +1,10 @@
+
 import React, { useState } from "react";
-import { Edit3, Check, X, Camera, Share2, Youtube, Eye, Upload } from "lucide-react";
+import { Edit3, Check, X, Camera, Share2, Youtube, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useShareCampaign } from "@/hooks/useShareCampaign";
 import { toast } from "@/hooks/use-toast";
-import { supabase, uploadFile, getPublicUrl } from "@/lib/supabase";
-import { useAuth } from "@/contexts/AuthContext";
 
 interface ProfileData {
   studentName: string;
@@ -24,10 +23,7 @@ const EditableProfileCard: React.FC<EditableProfileCardProps> = ({ data, onUpdat
   const [isEditing, setIsEditing] = useState(false);
   const [editData, setEditData] = useState(data);
   const [videoPreview, setVideoPreview] = useState(data.videoUrl || '');
-  const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
-  const [isUploadingBanner, setIsUploadingBanner] = useState(false);
   const share = useShareCampaign();
-  const { user } = useAuth();
 
   const handleSave = () => {
     onUpdate(editData);
@@ -43,146 +39,6 @@ const EditableProfileCard: React.FC<EditableProfileCardProps> = ({ data, onUpdat
   const handleVideoUrlChange = (url: string) => {
     setVideoPreview(url);
     setEditData(prev => ({ ...prev, videoUrl: url }));
-  };
-
-  const handlePhotoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file || !user) {
-      toast({
-        title: "Error",
-        description: "Please select a valid image file",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    // Validate file type
-    if (!file.type.startsWith('image/')) {
-      toast({
-        title: "Invalid file type",
-        description: "Please select an image file (JPEG, PNG, WebP)",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    // Validate file size (5MB limit)
-    if (file.size > 5 * 1024 * 1024) {
-      toast({
-        title: "File too large",
-        description: "Please select an image smaller than 5MB",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setIsUploadingPhoto(true);
-
-    try {
-      // Create unique filename
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${user.id}/profile-${Date.now()}.${fileExt}`;
-
-      // Upload to Supabase storage
-      const uploadResult = await uploadFile('profile-pictures', fileName, file);
-      
-      if (uploadResult) {
-        // Get public URL
-        const publicUrl = getPublicUrl('profile-pictures', fileName);
-        
-        // Update profile in database
-        const { error: updateError } = await supabase
-          .from('profiles')
-          .update({ avatar_url: publicUrl })
-          .eq('id', user.id);
-
-        if (updateError) {
-          throw updateError;
-        }
-
-        // Update local state
-        setEditData(prev => ({ ...prev, photo: publicUrl }));
-        
-        toast({
-          title: "Profile picture updated!",
-          description: "Your profile picture has been successfully updated.",
-        });
-      }
-    } catch (error) {
-      console.error('Error uploading profile picture:', error);
-      toast({
-        title: "Upload failed",
-        description: error instanceof Error ? error.message : "Failed to upload profile picture",
-        variant: "destructive",
-      });
-    } finally {
-      setIsUploadingPhoto(false);
-    }
-  };
-
-  const handleBannerUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file || !user) {
-      toast({
-        title: "Error",
-        description: "Please select a valid image file",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    // Validate file type
-    if (!file.type.startsWith('image/')) {
-      toast({
-        title: "Invalid file type",
-        description: "Please select an image file (JPEG, PNG, WebP)",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    // Validate file size (10MB limit for banners)
-    if (file.size > 10 * 1024 * 1024) {
-      toast({
-        title: "File too large",
-        description: "Please select an image smaller than 10MB",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setIsUploadingBanner(true);
-
-    try {
-      // Create unique filename
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${user.id}/banner-${Date.now()}.${fileExt}`;
-
-      // Upload to Supabase storage
-      const uploadResult = await uploadFile('banner-images', fileName, file);
-      
-      if (uploadResult) {
-        // Get public URL
-        const publicUrl = getPublicUrl('banner-images', fileName);
-        
-        // Update local state
-        setEditData(prev => ({ ...prev, bannerImage: publicUrl }));
-        
-        toast({
-          title: "Banner updated!",
-          description: "Your banner image has been successfully updated.",
-        });
-      }
-    } catch (error) {
-      console.error('Error uploading banner:', error);
-      toast({
-        title: "Upload failed",
-        description: error instanceof Error ? error.message : "Failed to upload banner image",
-        variant: "destructive",
-      });
-    } finally {
-      setIsUploadingBanner(false);
-    }
   };
 
   const getYouTubeEmbedUrl = (url: string) => {
@@ -217,39 +73,14 @@ const EditableProfileCard: React.FC<EditableProfileCardProps> = ({ data, onUpdat
           {isEditing ? 'Cancel' : 'Edit'}
         </Button>
         {isEditing && (
-          <div className="absolute bottom-4 right-4">
-            <input
-              type="file"
-              accept="image/*"
-              onChange={handleBannerUpload}
-              className="hidden"
-              id="banner-upload"
-              disabled={isUploadingBanner}
-            />
-            <label htmlFor="banner-upload">
-              <Button
-                variant="outline"
-                size="sm"
-                className="bg-white/80 cursor-pointer"
-                disabled={isUploadingBanner}
-                asChild
-              >
-                <span>
-                  {isUploadingBanner ? (
-                    <>
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mr-1"></div>
-                      Uploading...
-                    </>
-                  ) : (
-                    <>
-                      <Camera size={16} className="mr-1" />
-                      Change Banner
-                    </>
-                  )}
-                </span>
-              </Button>
-            </label>
-          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            className="absolute bottom-4 right-4 bg-white/80"
+          >
+            <Camera size={16} className="mr-1" />
+            Change Banner
+          </Button>
         )}
       </div>
 
@@ -262,32 +93,12 @@ const EditableProfileCard: React.FC<EditableProfileCardProps> = ({ data, onUpdat
             className="w-24 h-24 sm:w-28 sm:h-28 rounded-full border-4 border-white object-cover shadow-lg"
           />
           {isEditing && (
-            <div className="absolute bottom-0 right-0">
-              <input
-                type="file"
-                accept="image/*"
-                onChange={handlePhotoUpload}
-                className="hidden"
-                id="photo-upload"
-                disabled={isUploadingPhoto}
-              />
-              <label htmlFor="photo-upload">
-                <Button
-                  size="sm"
-                  className="rounded-full w-8 h-8 p-0 cursor-pointer"
-                  disabled={isUploadingPhoto}
-                  asChild
-                >
-                  <span>
-                    {isUploadingPhoto ? (
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                    ) : (
-                      <Camera size={14} />
-                    )}
-                  </span>
-                </Button>
-              </label>
-            </div>
+            <Button
+              size="sm"
+              className="absolute bottom-0 right-0 rounded-full w-8 h-8 p-0"
+            >
+              <Camera size={14} />
+            </Button>
           )}
         </div>
 

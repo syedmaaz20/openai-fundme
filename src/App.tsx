@@ -1,10 +1,10 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
-import PrivateRoute from "@/components/PrivateRoute";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import About from "./pages/About";
@@ -43,49 +43,11 @@ const App = () => (
             <Route path="/campaigns" element={<Campaigns />} />
             <Route path="/campaigns/:id" element={<CampaignDetail />} />
             <Route path="/how-it-works" element={<HowItWorks />} />
-            
-            {/* Protected Routes */}
-            <Route 
-              path="/student-profile" 
-              element={
-                <PrivateRoute requiredUserType="student">
-                  <StudentProfile />
-                </PrivateRoute>
-              } 
-            />
-            <Route 
-              path="/student-dashboard" 
-              element={
-                <PrivateRoute requiredUserType="student">
-                  <StudentDashboard />
-                </PrivateRoute>
-              } 
-            />
-            <Route 
-              path="/donor-dashboard" 
-              element={
-                <PrivateRoute requiredUserType="donor">
-                  <DonorDashboard />
-                </PrivateRoute>
-              } 
-            />
-            <Route 
-              path="/donor-profile" 
-              element={
-                <PrivateRoute requiredUserType="donor">
-                  <DonorProfile />
-                </PrivateRoute>
-              } 
-            />
-            <Route 
-              path="/admin-dashboard" 
-              element={
-                <PrivateRoute requiredUserType="admin">
-                  <AdminDashboard />
-                </PrivateRoute>
-              } 
-            />
-            
+            <Route path="/student-profile" element={<StudentProfile />} />
+            <Route path="/student-dashboard" element={<StudentDashboard />} />
+            <Route path="/donor-dashboard" element={<DonorDashboard />} />
+            <Route path="/donor-profile" element={<DonorProfile />} />
+            <Route path="/admin-dashboard" element={<AdminDashboard />} />
             {/* NEW: Share-friendly short campaign route */}
             <Route path="/c/:shareCode" element={<ShortCampaignDetail />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
