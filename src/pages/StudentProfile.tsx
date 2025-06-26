@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import TopNav from "@/components/TopNav";
 import { useAuth } from "@/contexts/AuthContext";
 import { Navigate } from "react-router-dom";
@@ -11,10 +11,10 @@ import EditableGoals from "@/components/student-profile/EditableGoals";
 import ProfileSidebar from "@/components/student-profile/ProfileSidebar";
 
 const StudentProfile = () => {
-  const { user, isAuthenticated } = useAuth();
+  const { user, profile, isAuthenticated } = useAuth();
   const [profileData, setProfileData] = useState({
-    studentName: user?.firstName + ' ' + user?.lastName || '',
-    photo: user?.avatar || 'https://images.unsplash.com/photo-1494790108755-2616b612b407?auto=format&fit=crop&w=150&h=150&q=80',
+    studentName: '',
+    photo: 'https://images.unsplash.com/photo-1494790108755-2616b612b407?auto=format&fit=crop&w=150&h=150&q=80',
     program: 'Social Work',
     institution: 'University of California, Los Angeles',
     institutionUrl: 'https://www.ucla.edu/',
@@ -32,11 +32,23 @@ const StudentProfile = () => {
       { title: 'Maintain GPA', description: 'Keep GPA above 3.5', completed: true }
     ],
     campaignPublished: false,
-    shareCode: 'maria-rodriguez-sw'
+    shareCode: profile?.username || 'student-campaign'
   });
 
+  // Update profile data when profile loads
+  useEffect(() => {
+    if (profile) {
+      setProfileData(prev => ({
+        ...prev,
+        studentName: `${profile.first_name} ${profile.last_name}`,
+        photo: profile.avatar || prev.photo,
+        shareCode: profile.username || `${profile.first_name}-${profile.last_name}`.toLowerCase().replace(/\s+/g, '-')
+      }));
+    }
+  }, [profile]);
+
   // Redirect if not authenticated or not a student
-  if (!isAuthenticated || user?.userType !== 'student') {
+  if (!isAuthenticated || profile?.user_type !== 'student') {
     return <Navigate to="/" replace />;
   }
 

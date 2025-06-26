@@ -22,7 +22,7 @@ const navLinks = [
 const TopNav = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { user, logout, isAuthenticated } = useAuth();
+  const { user, profile, logout, isAuthenticated } = useAuth();
   const [showAuthModal, setShowAuthModal] = useState(false);
 
   const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
@@ -37,13 +37,13 @@ const TopNav = () => {
     navigate('/student-profile');
   };
 
-  const handleLogout = () => {
-    logout();
+  const handleLogout = async () => {
+    await logout();
     navigate('/');
   };
 
   const getDashboardRoute = () => {
-    switch (user?.userType) {
+    switch (profile?.user_type) {
       case 'student':
         return '/student-dashboard';
       case 'donor':
@@ -56,7 +56,7 @@ const TopNav = () => {
   };
 
   const getProfileRoute = () => {
-    switch (user?.userType) {
+    switch (profile?.user_type) {
       case 'student':
         return '/student-profile';
       case 'donor':
@@ -105,7 +105,7 @@ const TopNav = () => {
             
             {isAuthenticated ? (
               <>
-                {user?.userType === 'student' && (
+                {profile?.user_type === 'student' && (
                   <li>
                     <button
                       onClick={handleStartCampaign}
@@ -119,7 +119,7 @@ const TopNav = () => {
                   <DropdownMenu>
                     <DropdownMenuTrigger className="flex items-center gap-2 px-3 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors">
                       <User size={16} />
-                      <span className="text-sm font-medium">{user?.firstName}</span>
+                      <span className="text-sm font-medium">{profile?.first_name || 'User'}</span>
                       <ChevronDown size={14} />
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="w-48 bg-white border shadow-lg z-50">
