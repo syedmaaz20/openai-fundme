@@ -1,5 +1,4 @@
-
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import TopNav from "@/components/TopNav";
 import { useAuth } from "@/contexts/AuthContext";
 import { Navigate } from "react-router-dom";
@@ -11,13 +10,13 @@ import { Edit3, Check, X, Camera, Heart, Users, DollarSign, Eye, Settings, Share
 import { toast } from "@/hooks/use-toast";
 
 const DonorProfile = () => {
-  const { user, isAuthenticated } = useAuth();
+  const { profile, isAuthenticated } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const [profileData, setProfileData] = useState({
-    firstName: user?.firstName || '',
-    lastName: user?.lastName || '',
-    email: user?.email || '',
-    avatar: user?.avatar || 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=150&h=150&q=80',
+    firstName: '',
+    lastName: '',
+    email: '',
+    avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=150&h=150&q=80',
     bio: 'Passionate about supporting education and helping students achieve their dreams. I believe in the power of education to transform lives and communities.',
     location: 'San Francisco, CA',
     interests: ['Education', 'Social Impact', 'Technology', 'Community Development'],
@@ -26,8 +25,20 @@ const DonorProfile = () => {
     yearsActive: 2
   });
 
+  // Update profile data when profile loads
+  useEffect(() => {
+    if (profile) {
+      setProfileData(prev => ({
+        ...prev,
+        firstName: profile.first_name || '',
+        lastName: profile.last_name || '',
+        avatar: profile.avatar || prev.avatar
+      }));
+    }
+  }, [profile]);
+
   // Redirect if not authenticated or not a donor
-  if (!isAuthenticated || user?.userType !== 'donor') {
+  if (!isAuthenticated || profile?.user_type !== 'donor') {
     return <Navigate to="/" replace />;
   }
 

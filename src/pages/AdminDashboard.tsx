@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import TopNav from "@/components/TopNav";
 import { useAuth } from "@/contexts/AuthContext";
@@ -30,7 +29,7 @@ interface StudentApplication {
 }
 
 const AdminDashboard = () => {
-  const { user, isAuthenticated } = useAuth();
+  const { profile, isAuthenticated } = useAuth();
   const [selectedStudent, setSelectedStudent] = useState<StudentApplication | null>(null);
   const [applications, setApplications] = useState<StudentApplication[]>([
     {
@@ -62,7 +61,7 @@ const AdminDashboard = () => {
   ]);
 
   // Redirect if not authenticated or not an admin
-  if (!isAuthenticated || user?.userType !== 'admin') {
+  if (!isAuthenticated || profile?.user_type !== 'admin') {
     return <Navigate to="/" replace />;
   }
 
