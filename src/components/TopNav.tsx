@@ -27,10 +27,10 @@ const TopNav = () => {
 
   // Debug logging to understand the current user state
   useEffect(() => {
-    console.log('Current user:', user);
-    console.log('Current profile:', profile);
-    console.log('Is authenticated:', isAuthenticated);
-    console.log('Is loading:', isLoading);
+    console.log('TopNav - Current user:', user?.id);
+    console.log('TopNav - Current profile:', profile);
+    console.log('TopNav - Is authenticated:', isAuthenticated);
+    console.log('TopNav - Is loading:', isLoading);
   }, [user, profile, isAuthenticated, isLoading]);
 
   const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
@@ -77,7 +77,9 @@ const TopNav = () => {
   };
 
   const getDashboardRoute = () => {
-    switch (profile?.user_type) {
+    if (!profile) return '/';
+    
+    switch (profile.user_type) {
       case 'student':
         return '/student-dashboard';
       case 'donor':
@@ -90,7 +92,9 @@ const TopNav = () => {
   };
 
   const getProfileRoute = () => {
-    switch (profile?.user_type) {
+    if (!profile) return '/';
+    
+    switch (profile.user_type) {
       case 'student':
         return '/student-profile';
       case 'donor':
@@ -100,19 +104,31 @@ const TopNav = () => {
     }
   };
 
-  // Get display name with fallbacks
+  // Get display name with fallbacks - prioritize profile data
   const getDisplayName = () => {
-    if (profile?.first_name) {
+    // If we're still loading and have a user, show loading state
+    if (isLoading && user && !profile) {
+      return 'Loading...';
+    }
+    
+    // Priority order: first_name -> username -> email username
+    if (profile?.first_name && profile.first_name.trim()) {
       return profile.first_name;
     }
-    if (profile?.username) {
+    
+    if (profile?.username && profile.username.trim()) {
       return profile.username;
     }
+    
     if (user?.email) {
       return user.email.split('@')[0]; // Use email username as fallback
     }
+    
     return 'User';
   };
+
+  // Don't show dropdown if we don't have profile data yet (except when loading is complete)
+  const shouldShowDropdown = isAuthenticated && (profile || !isLoading);
 
   return (
     <>
@@ -151,7 +167,7 @@ const TopNav = () => {
               </li>
             ))}
             
-            {isAuthenticated ? (
+            {shouldShowDropdown ? (
               <>
                 {profile?.user_type === 'student' && (
                   <li>
@@ -174,6 +190,7 @@ const TopNav = () => {
                       <DropdownMenuItem 
                         onClick={handleDashboard}
                         className="cursor-pointer hover:bg-gray-100 focus:bg-gray-100"
+                        disabled={!profile}
                       >
                         <LayoutDashboard size={16} className="mr-2" />
                         Dashboard
@@ -181,6 +198,7 @@ const TopNav = () => {
                       <DropdownMenuItem 
                         onClick={handleProfile}
                         className="cursor-pointer hover:bg-gray-100 focus:bg-gray-100"
+                        disabled={!profile}
                       >
                         <UserCircle size={16} className="mr-2" />
                         Profile
@@ -188,6 +206,7 @@ const TopNav = () => {
                       <DropdownMenuItem 
                         onClick={handleSettings}
                         className="cursor-pointer hover:bg-gray-100 focus:bg-gray-100"
+                        disabled={!profile}
                       >
                         <Settings size={16} className="mr-2" />
                         Settings
@@ -204,6 +223,10 @@ const TopNav = () => {
                   </DropdownMenu>
                 </li>
               </>
+            ) : isAuthenticated && isLoading ? (
+              <li className="flex items-center">
+                <div className="px-3 py-2 text-sm text-gray-600">Loading...</div>
+              </li>
             ) : (
               <li>
                 <button
