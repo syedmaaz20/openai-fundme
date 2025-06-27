@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import TopNav from "@/components/TopNav";
-import { useAuth } from "@/contexts/AuthContext";
-import { Navigate } from "react-router-dom";
+import { useMockData } from "@/contexts/MockDataContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -29,7 +28,7 @@ interface StudentApplication {
 }
 
 const AdminDashboard = () => {
-  const { profile, isAuthenticated } = useAuth();
+  const { currentUser } = useMockData();
   const [selectedStudent, setSelectedStudent] = useState<StudentApplication | null>(null);
   const [applications, setApplications] = useState<StudentApplication[]>([
     {
@@ -59,11 +58,6 @@ const AdminDashboard = () => {
       story: 'Coming from a low-income family, I have always dreamed of becoming an engineer...'
     }
   ]);
-
-  // Redirect if not authenticated or not an admin
-  if (!isAuthenticated || profile?.user_type !== 'admin') {
-    return <Navigate to="/" replace />;
-  }
 
   const handleViewDetails = (student: StudentApplication) => {
     setSelectedStudent(student);
@@ -127,7 +121,6 @@ const AdminDashboard = () => {
         <div className="w-full max-w-6xl mx-auto space-y-6 mb-12">
           <h1 className="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
 
-          {/* Stats Overview */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <Card>
               <CardContent className="p-4 text-center">
@@ -159,7 +152,6 @@ const AdminDashboard = () => {
             </Card>
           </div>
 
-          {/* Applications List */}
           <Card>
             <CardHeader>
               <CardTitle>Student Applications</CardTitle>
@@ -202,7 +194,6 @@ const AdminDashboard = () => {
         </div>
       </main>
 
-      {/* Student Details Modal */}
       <Dialog open={!!selectedStudent} onOpenChange={() => setSelectedStudent(null)}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
@@ -211,7 +202,6 @@ const AdminDashboard = () => {
           
           {selectedStudent && (
             <div className="space-y-6">
-              {/* Student Info */}
               <div className="flex items-start gap-4">
                 <img
                   src={selectedStudent.photo}
@@ -235,13 +225,11 @@ const AdminDashboard = () => {
                 </div>
               </div>
 
-              {/* Student Story */}
               <div>
                 <h3 className="font-semibold mb-2">Student's Story</h3>
                 <p className="text-gray-700 bg-gray-50 p-4 rounded-lg">{selectedStudent.story}</p>
               </div>
 
-              {/* Supporting Documents */}
               <div>
                 <h3 className="font-semibold mb-2">Supporting Documents</h3>
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
@@ -254,7 +242,6 @@ const AdminDashboard = () => {
                 </div>
               </div>
 
-              {/* Action Buttons */}
               {selectedStudent.status === 'pending' && (
                 <div className="flex gap-3 pt-4 border-t">
                   <Button

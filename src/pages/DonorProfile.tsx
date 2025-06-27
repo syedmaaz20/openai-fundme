@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import TopNav from "@/components/TopNav";
-import { useAuth } from "@/contexts/AuthContext";
-import { Navigate } from "react-router-dom";
+import { useMockData } from "@/contexts/MockDataContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,7 +9,7 @@ import { Edit3, Check, X, Camera, Heart, Users, DollarSign, Eye, Settings, Share
 import { toast } from "@/hooks/use-toast";
 
 const DonorProfile = () => {
-  const { profile, isAuthenticated } = useAuth();
+  const { currentUser } = useMockData();
   const [isEditing, setIsEditing] = useState(false);
   const [profileData, setProfileData] = useState({
     firstName: '',
@@ -25,22 +24,18 @@ const DonorProfile = () => {
     yearsActive: 2
   });
 
-  // Update profile data when profile loads
+  // Update profile data when user loads
   useEffect(() => {
-    if (profile) {
+    if (currentUser) {
       setProfileData(prev => ({
         ...prev,
-        firstName: profile.first_name || '',
-        lastName: profile.last_name || '',
-        avatar: profile.avatar || prev.avatar
+        firstName: currentUser.firstName || '',
+        lastName: currentUser.lastName || '',
+        email: currentUser.email || '',
+        avatar: currentUser.avatar || prev.avatar
       }));
     }
-  }, [profile]);
-
-  // Redirect if not authenticated or not a donor
-  if (!isAuthenticated || profile?.user_type !== 'donor') {
-    return <Navigate to="/" replace />;
-  }
+  }, [currentUser]);
 
   const handleSave = () => {
     setIsEditing(false);

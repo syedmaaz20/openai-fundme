@@ -1,18 +1,12 @@
 import React from "react";
 import TopNav from "@/components/TopNav";
-import { useAuth } from "@/contexts/AuthContext";
-import { Navigate } from "react-router-dom";
+import { useMockData } from "@/contexts/MockDataContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Heart, DollarSign, Users, TrendingUp, Search, Filter } from "lucide-react";
 
 const DonorDashboard = () => {
-  const { profile, isAuthenticated } = useAuth();
-
-  // Redirect if not authenticated or not a donor
-  if (!isAuthenticated || profile?.user_type !== 'donor') {
-    return <Navigate to="/" replace />;
-  }
+  const { currentUser } = useMockData();
 
   // Mock donation data
   const donationStats = {
@@ -51,7 +45,7 @@ const DonorDashboard = () => {
       <main className="flex-1 w-full max-w-6xl mx-auto pt-8 px-4 lg:px-0">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Welcome back, {profile?.first_name}! 🌟
+            Welcome back, {currentUser?.firstName}! 🌟
           </h1>
           <p className="text-gray-600">Your generosity is changing lives</p>
         </div>

@@ -1,18 +1,12 @@
 import React from "react";
 import TopNav from "@/components/TopNav";
-import { useAuth } from "@/contexts/AuthContext";
-import { Navigate } from "react-router-dom";
+import { useMockData } from "@/contexts/MockDataContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Eye, Share2, Heart, DollarSign, Edit3, BarChart3 } from "lucide-react";
 
 const StudentDashboard = () => {
-  const { profile, isAuthenticated } = useAuth();
-
-  // Redirect if not authenticated or not a student
-  if (!isAuthenticated || profile?.user_type !== 'student') {
-    return <Navigate to="/" replace />;
-  }
+  const { currentUser } = useMockData();
 
   // Mock campaign data
   const campaignStats = {
@@ -32,11 +26,12 @@ const StudentDashboard = () => {
       <main className="flex-1 w-full max-w-6xl mx-auto pt-8 px-4 lg:px-0">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Welcome back, {profile?.first_name}! 👋
+            Welcome back, {currentUser?.firstName}! 👋
           </h1>
           <p className="text-gray-600">Here's how your campaign is performing</p>
         </div>
 
+        
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">

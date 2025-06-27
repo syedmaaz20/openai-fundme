@@ -1,8 +1,7 @@
 
 import React, { useState, useEffect } from "react";
 import TopNav from "@/components/TopNav";
-import { useAuth } from "@/contexts/AuthContext";
-import { Navigate } from "react-router-dom";
+import { useMockData } from "@/contexts/MockDataContext";
 import EditableProfileCard from "@/components/student-profile/EditableProfileCard";
 import EditableEducationPath from "@/components/student-profile/EditableEducationPath";
 import EditableStory from "@/components/student-profile/EditableStory";
@@ -11,7 +10,7 @@ import EditableGoals from "@/components/student-profile/EditableGoals";
 import ProfileSidebar from "@/components/student-profile/ProfileSidebar";
 
 const StudentProfile = () => {
-  const { user, profile, isAuthenticated } = useAuth();
+  const { currentUser } = useMockData();
   const [profileData, setProfileData] = useState({
     studentName: '',
     photo: 'https://images.unsplash.com/photo-1494790108755-2616b612b407?auto=format&fit=crop&w=150&h=150&q=80',
@@ -32,25 +31,20 @@ const StudentProfile = () => {
       { title: 'Maintain GPA', description: 'Keep GPA above 3.5', completed: true }
     ],
     campaignPublished: false,
-    shareCode: profile?.username || 'student-campaign'
+    shareCode: currentUser.username || 'student-campaign'
   });
 
-  // Update profile data when profile loads
+  // Update profile data when user loads
   useEffect(() => {
-    if (profile) {
+    if (currentUser) {
       setProfileData(prev => ({
         ...prev,
-        studentName: `${profile.first_name} ${profile.last_name}`,
-        photo: profile.avatar || prev.photo,
-        shareCode: profile.username || `${profile.first_name}-${profile.last_name}`.toLowerCase().replace(/\s+/g, '-')
+        studentName: `${currentUser.firstName} ${currentUser.lastName}`,
+        photo: currentUser.avatar || prev.photo,
+        shareCode: currentUser.username || `${currentUser.firstName}-${currentUser.lastName}`.toLowerCase().replace(/\s+/g, '-')
       }));
     }
-  }, [profile]);
-
-  // Redirect if not authenticated or not a student
-  if (!isAuthenticated || profile?.user_type !== 'student') {
-    return <Navigate to="/" replace />;
-  }
+  }, [currentUser]);
 
   const updateProfileData = (updates: Partial<typeof profileData>) => {
     setProfileData(prev => ({ ...prev, ...updates }));
