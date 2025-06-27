@@ -52,7 +52,7 @@ const App = () => (
         </BrowserRouter>
       </TooltipProvider>
     </MockDataProvider>
-  </Query ClientProvider>
+  </QueryClientProvider>
 );
 
 export default App;
